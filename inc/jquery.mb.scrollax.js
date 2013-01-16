@@ -14,7 +14,7 @@
  *  http://www.opensource.org/licenses/mit-license.php
  *  http://www.gnu.org/licenses/gpl.html
  *
- *  last modified: 16/01/13 23.34
+ *  last modified: 16/01/13 23.37
  *  *****************************************************************************
  */
 
@@ -30,7 +30,6 @@ var ua = navigator.userAgent.toLowerCase();
 var isAndroid = /android/.test(ua);
 var isiOs = /(iphone|ipod|ipad)/.test(ua);
 var isOpera = /opera/.test(ua);
-
 
 /*events mapping*/
 var isDevice = 'ontouchstart' in window;
