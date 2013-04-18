@@ -14,7 +14,7 @@
  *  http://www.opensource.org/licenses/mit-license.php
  *  http://www.gnu.org/licenses/gpl.html
  *
- *  last modified: 16/01/13 23.37
+ *  last modified: 18/04/13 21.59
  *  *****************************************************************************
  */
 
@@ -68,6 +68,7 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 	d.event.special.mousewheel = {setup: function () {if (this.addEventListener)for (var a = c.length; a;)this.addEventListener(c[--a], e, !1); else this.onmousewheel = e}, teardown: function () {if (this.removeEventListener)for (var a = c.length; a;)this.removeEventListener(c[--a], e, !1); else this.onmousewheel = null}};
 	d.fn.extend({mousewheel: function (a) {return a ? this.bind("mousewheel", a) : this.trigger("mousewheel")}, unmousewheel: function (a) {return this.unbind("mousewheel", a)}})
 })(jQuery);
+
 /*****************************************************************************/
 
 (function ($) {
@@ -81,11 +82,9 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 			var scrollerCont = $("<div/>").addClass("scrollaxerCont").css({width: 50, position: "fixed", top: 0, right: 0, overflowX: "hidden", overflowY: "visible", height: "100%", opacity: 0, zIndex: 9999});
 			scrollerCont.append(scroller);
 
-			/*
-			 scrollerCont.on("mousewheel",function(event){
-			 event.preventDefault();
-			 });
-			 */
+			scrollerCont.on("mousewheel",function(event){
+				event.preventDefault();
+			});
 
 			if (!isDevice)
 				scrollerCont.on("mouseenter",function () {
