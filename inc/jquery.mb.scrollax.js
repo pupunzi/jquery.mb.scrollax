@@ -14,7 +14,7 @@
  *  http://www.opensource.org/licenses/mit-license.php
  *  http://www.gnu.org/licenses/gpl.html
  *
- *  last modified: 18/04/13 21.59
+ *  last modified: 21/04/13 17.36
  *  *****************************************************************************
  */
 
@@ -71,17 +71,30 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 
 /*****************************************************************************/
 
+jQuery.fn.unselectable = function () {
+	this.each(function () {
+		jQuery(this).css({
+			"-moz-user-select"  : "none",
+			"-khtml-user-select": "none",
+			"user-select"       : "none"
+		}).attr("unselectable", "on");
+	});
+	return jQuery(this);
+};
+
+
 (function ($) {
 	$.timeline = {
 		frames         : 4000,
 		direction      : "vertical",
+		wheelSpeed: 3,
 		pos            : 0,
 		buildScroller  : function () {
 			$(".scrollaxerCont").remove();
 			var scroller = $("<div/>").addClass("scrollaxer").css({width: 20, height: $.timeline.frames + $(window).height()});
-			var scrollerCont = $("<div/>").addClass("scrollaxerCont").css({width: 50, position: "fixed", top: 0, right: 0, overflowX: "hidden", overflowY: "visible", height: "100%", opacity: 0, zIndex: 9999});
+			var scrollerCont = $("<div/>").addClass("scrollaxerCont").css({width: 50, position: "fixed", top: 0, right: 0, overflowX: "hidden", overflowY: "visible", height: "100%", opacity:.5, zIndex: 9999});
 			scrollerCont.append(scroller);
-
+			scrollerCont.unselectable();
 			scrollerCont.on("mousewheel",function(event){
 				event.preventDefault();
 			});
@@ -91,7 +104,7 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 					$(this).animate({opacity: 1});
 				}).on("mouseleave", function () {
 							$.timeline.scroller.scrollTop($.timeline.pos);
-							$(this).animate({opacity: 0});
+							$(this).animate({opacity:.5});
 						});
 			else
 				scrollerCont.css({opacity: 1});
@@ -120,21 +133,21 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 					}
 				}
 
-				$("#console").html($.timeline.dir);
-
 				event.pos = $.timeline.pos;
 				$(document).trigger(event);
 			});
 
 			if (!isDevice) {
 				$("body").on("mousewheel", function (event, delta, deltaX, deltaY) {
+
 					event.preventDefault();
 					if ($.scrollax.autoplay) {
 						clearInterval($.scrollax.autoplay);
 						$.scrollax.autoplay = false;
 					}
-					$.timeline.moveBy(-deltaY);
+					$.timeline.moveBy(-(deltaY * $.timeline.wheelSpeed));
 				});
+
 			} else {
 				$.timeline.touch = {};
 				$.timeline.touch.x = 0;
@@ -178,13 +191,15 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 			}
 		},
 		moveBy         : function (delta) {
-			delta = isOpera ? Math.ceil(delta / 2) : isDevice ? delta / 3 : delta;
+
+			delta = isOpera ? Math.ceil(delta / 10) : isDevice ? delta / 3 : delta;
 			delta = Math.ceil(delta > 0 && delta < 1 ? 1 : delta < 0 && delta > -1 ? -1 : delta);
+
 			$.timeline.delta = $.timeline.scroller.scrollTop() + (delta);
 			$.timeline.scroller.scrollTop($.timeline.delta);
 		},
 		moveTo         : function (val) {
-			var time = Math.abs(($.timeline.scroller.scrollTop() * 2) - val);
+			var time = $.timeline.scroller.scrollTop() ? Math.abs($.timeline.scroller.scrollTop()* 3 ) : Math.abs(val* 5 );
 			$.timeline.scroller.animate({scrollTop: val}, time, "linear");//"easeInOutQuint"
 		},
 		refresh        : function (val) {
@@ -214,12 +229,29 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 		version : "1.1",
 		defaults: {
 			elements : "[data-start]",
+			wheelSpeed: 3,
 			direction: "vertical",
-			showSteps: true
+			showSteps: true,
+			preloadImages:true,
+			onStartPreloading:function(){},
+			onPreloading:function(counter, tot){},
+			onEndPreloading:function(){}
 		},
 
 		init: function (options) {
 			$.extend($.scrollax.defaults, options);
+
+			if($.scrollax.defaults.preloadImages){
+
+				$.scrollax.defaults.onStartPreloading();
+				$.preloadImages(function(){
+					$.scrollax.defaults.onEndPreloading();
+				});
+
+			}
+
+
+			$.timeline.wheelSpeed = $.scrollax.defaults.wheelSpeed;
 
 			$.scrollax.els = $($.scrollax.defaults.elements);
 			$.scrollax.scrolled = 0;
@@ -229,10 +261,11 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 			});
 
 			$(document).off("timelineChanged.scrollax").on("timelineChanged.scrollax", function (e) {
-
 				$.scrollax.els.each(function () {
 					$(this).renderAnimation(e.pos);
 				});
+
+				$(document).trigger("timeline_"+ e.pos);
 				if (typeof $.timeline.events[e.pos] === "function") {
 					$.timeline.events[e.pos]();
 				}
@@ -244,6 +277,7 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 					self.location.href = self.location.href;
 				}, 150);
 			});
+
 		},
 
 		addElement: function (el) {
@@ -290,7 +324,7 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 		addScrollax: function (options) {
 			var el = this.get(0), obj = options , i;
 
-			$.scrollax.els.push($(el));
+			$.scrollax.els = $.scrollax.els.add($(el));
 
 			if (typeof obj.start == "number") {
 				obj.startScrollPos = obj.start;
@@ -325,8 +359,12 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 			/*Check the window scroll height according to animations timelines ************************/
 			$.scrollax.maxScroll = $.scrollax.maxScroll < obj.endScrollPos + $(window).height() ? obj.endScrollPos + $(window).height() : $.scrollax.maxScroll;
 			$.timeline.refresh($.scrollax.maxScroll);
+
 			if ($.scrollax.defaults.showSteps)
 				$.scrollax.traceFrames();
+
+			if(obj.customEvent)
+				el.customEvent = obj.customEvent;
 
 			return this;
 
@@ -376,6 +414,10 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 					var animVal = $.scrollax.setPropVal(obj, pos);
 					var css = $.scrollax.generateCss(animVal);
 					$(el).css(css);
+
+					if(el.customEvent)
+						el.customEvent(pos, obj);
+
 				}
 			}
 		},
@@ -474,5 +516,64 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 	$.fn.scrollax = $.scrollax.init;
 	$.fn.renderAnimation = $.scrollax.renderAnimation;
 	$.fn.addScrollax = $.scrollax.addScrollax;
+
+
+	jQuery.preloadImages = function(callback){
+
+		var sheets = document.styleSheets;//array of stylesheets
+
+		/*Images in stylesheets*/
+		for(var i = 0; i<sheets.length; i++){//loop through each stylesheet
+			var cssPile = '';//create large string of all css rules in sheet
+			var csshref = (sheets[i].href) ? sheets[i].href : 'window.location.href';
+			if(document.styleSheets[i].cssRules){//w3
+				var thisSheetRules = document.styleSheets[i].cssRules; //w3
+				for(var j = 0; j<thisSheetRules.length; j++){
+					cssPile+= thisSheetRules[j].cssText;
+				}
+			}
+			else {
+				cssPile+= document.styleSheets[i].cssText;
+			}
+			var imgUrls = cssPile.match(/[^\(]+\.(gif|jpg|jpeg|png)/g);//reg ex to get a string of between a "(" and a ".filename"
+			var arr = jQuery.makeArray(imgUrls);//create array from regex obj
+		}
+
+		/*Images in inline style*/
+		var inLineImages=[];
+		$('[style*="background"]').each(function() {
+			var style = $(this).attr('style');
+
+			var pattern = /url\(\s*(['"]?)(.*?)\1\s*\)/g;
+			var match = pattern.exec(style);
+
+			if (match) {
+				inLineImages.push(match[2]);
+			}
+		});
+
+		jQuery.merge(arr, inLineImages);
+
+		/*Images */
+		var elementImages = [];
+		$("img").each(function(){
+			elementImages.push($(this).attr("src"));
+		});
+		jQuery.merge(arr, elementImages);
+
+		arr = jQuery.unique(arr);
+		var counter = 0;
+		for (var i in arr){
+			var img = $("<img/>");
+			img.on("load error",function(){
+				counter++;
+				$.scrollax.defaults.onPreloading(counter, arr.length);
+				;
+				if (counter == arr.length && typeof callback == "function")
+					callback();
+			}).attr("src", arr[i]);
+		}
+		return arr;
+	}
 
 })(jQuery);
