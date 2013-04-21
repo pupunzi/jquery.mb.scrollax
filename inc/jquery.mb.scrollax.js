@@ -14,7 +14,7 @@
  *  http://www.opensource.org/licenses/mit-license.php
  *  http://www.gnu.org/licenses/gpl.html
  *
- *  last modified: 21/04/13 17.36
+ *  last modified: 21/04/13 17.45
  *  *****************************************************************************
  */
 
@@ -233,7 +233,7 @@ jQuery.fn.unselectable = function () {
 			direction: "vertical",
 			showSteps: true,
 			preloadImages:true,
-			onStartPreloading:function(){},
+			onBeforePreloading:function(){},
 			onPreloading:function(counter, tot){},
 			onEndPreloading:function(){}
 		},
@@ -243,13 +243,12 @@ jQuery.fn.unselectable = function () {
 
 			if($.scrollax.defaults.preloadImages){
 
-				$.scrollax.defaults.onStartPreloading();
+				$.scrollax.defaults.onBeforePreloading();
 				$.preloadImages(function(){
 					$.scrollax.defaults.onEndPreloading();
 				});
 
 			}
-
 
 			$.timeline.wheelSpeed = $.scrollax.defaults.wheelSpeed;
 
@@ -480,6 +479,7 @@ jQuery.fn.unselectable = function () {
 			}
 			return animCss;
 		},
+
 		play      : function (speed) {
 			if (!speed) speed = 10;
 			if ($.scrollax.autoplay) {
