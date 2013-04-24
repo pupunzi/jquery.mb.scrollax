@@ -25,7 +25,6 @@
  * jQuery.mb.components: jquery.mb.CSSAnimate
  ******************************************************************************/
 
-
 var ua = navigator.userAgent.toLowerCase();
 var isAndroid = /android/.test(ua);
 var isiOs = /(iphone|ipod|ipad)/.test(ua);
@@ -87,8 +86,8 @@ jQuery.fn.unselectable = function () {
 	$.timeline = {
 		frames         : 4000,
 		direction      : "vertical",
-		wheelSpeed: 3,
 		pos            : 0,
+		pageMarkers:[],
 		buildScroller  : function () {
 			$(".scrollaxerCont").remove();
 			var scroller = $("<div/>").addClass("scrollaxer").css({width: 20, height: $.timeline.frames + $(window).height()});
@@ -145,7 +144,7 @@ jQuery.fn.unselectable = function () {
 						clearInterval($.scrollax.autoplay);
 						$.scrollax.autoplay = false;
 					}
-					$.timeline.moveBy(-(deltaY * $.timeline.wheelSpeed));
+					$.timeline.moveBy(-deltaY);
 				});
 
 			} else {
@@ -190,14 +189,55 @@ jQuery.fn.unselectable = function () {
 				});
 			}
 		},
+		addPageMarker: function(step){
+
+			$.timeline.pageMarkers.push(step);
+
+		},
 		moveBy         : function (delta) {
 
-			delta = isOpera ? Math.ceil(delta / 10) : isDevice ? delta / 3 : delta;
-			delta = Math.ceil(delta > 0 && delta < 1 ? 1 : delta < 0 && delta > -1 ? -1 : delta);
+			if($.timeline.isMoving && delta.sign() == $.timeline.runningDeltaSign)
+				return;
 
-			$.timeline.delta = $.timeline.scroller.scrollTop() + (delta);
-			$.timeline.scroller.scrollTop($.timeline.delta);
+			clearInterval($.timeline.step);
+
+			$.timeline.isMoving = true;
+			$.timeline.runningDeltaSign =  delta.sign() ;
+
+			var counter = 0;
+			$.timeline.step = setInterval(function(){
+				counter++;
+
+				if (counter > ($.timeline.wheelSpeed/$.timeline.scrollStep) ){
+
+					var nextPageMarker = null;
+
+					var reallyStop = true;
+
+					for (var pmi in $.timeline.pageMarkers){
+						var pm = $.timeline.pageMarkers[pmi];
+						if (pm > $.timeline.pos && delta.sign() == 1 && pm < ($.timeline.pos + ($.timeline.wheelSpeed*2)+1) ){
+							reallyStop = false;
+							console.debug("reallyStop  ", reallyStop)
+						}
+
+					}
+					if(reallyStop)
+						$.timeline.stopMoveBy();
+				}
+				var d = $.timeline.scrollStep * delta.sign();
+
+				$.timeline.delta = $.timeline.scroller.scrollTop() + d;
+				$.timeline.scroller.scrollTop($.timeline.delta);
+			},10);
+
 		},
+
+		stopMoveBy: function(){
+			clearInterval($.timeline.step);
+			$.timeline.isMoving = false;
+		},
+
 		moveTo         : function (val) {
 			var time = $.timeline.scroller.scrollTop() ? Math.abs($.timeline.scroller.scrollTop()* 3 ) : Math.abs(val* 5 );
 			$.timeline.scroller.animate({scrollTop: val}, time, "linear");//"easeInOutQuint"
@@ -229,7 +269,8 @@ jQuery.fn.unselectable = function () {
 		version : "1.1",
 		defaults: {
 			elements : "[data-start]",
-			wheelSpeed: 3,
+			wheelSpeed: 200,
+			scrollStep: 15,
 			direction: "vertical",
 			showSteps: true,
 			preloadImages:true,
@@ -250,7 +291,8 @@ jQuery.fn.unselectable = function () {
 
 			}
 
-			$.timeline.wheelSpeed = $.scrollax.defaults.wheelSpeed;
+			$.timeline.wheelSpeed = $.scrollax.defaults.wheelSpeed*10;
+			$.timeline.scrollStep = $.scrollax.defaults.scrollStep*10;
 
 			$.scrollax.els = $($.scrollax.defaults.elements);
 			$.scrollax.scrolled = 0;
@@ -260,9 +302,16 @@ jQuery.fn.unselectable = function () {
 			});
 
 			$(document).off("timelineChanged.scrollax").on("timelineChanged.scrollax", function (e) {
+
 				$.scrollax.els.each(function () {
 					$(this).renderAnimation(e.pos);
 				});
+
+				var isPageMarker = $.timeline.pageMarkers.indexOf($.timeline.pos) >= 0;
+//				console.debug($.timeline.pos, isPageMarker);
+
+				if(isPageMarker)
+					$.timeline.stopMoveBy();
 
 				$(document).trigger("timeline_"+ e.pos);
 				if (typeof $.timeline.events[e.pos] === "function") {
@@ -270,12 +319,13 @@ jQuery.fn.unselectable = function () {
 				}
 			});
 
-			$(window).off(events.winResize + ".scrollax").on(events.winResize + ".scrollax", function () {
-				clearTimeout($.scrollax.restart);
-				$.scrollax.restart = setTimeout(function () {
-					self.location.href = self.location.href;
-				}, 150);
-			});
+			if(!$.browser.msie)
+				$(window).off(events.winResize + ".scrollax").on(events.winResize + ".scrollax", function () {
+					clearTimeout($.scrollax.restart);
+					$.scrollax.restart = setTimeout(function () {
+						self.location.href = self.location.href;
+					}, 150);
+				});
 
 		},
 
@@ -577,3 +627,7 @@ jQuery.fn.unselectable = function () {
 	}
 
 })(jQuery);
+
+Number.prototype.sign = function(){
+	return this >0 ? 1 : -1;
+}
