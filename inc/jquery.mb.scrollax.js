@@ -14,12 +14,35 @@
  *  http://www.opensource.org/licenses/mit-license.php
  *  http://www.gnu.org/licenses/gpl.html
  *
- *  last modified: 21/04/13 17.45
+ *  last modified: 25/04/13 18.49
  *  *****************************************************************************
  */
 
 /*Browser detection patch*/
-(function(){if(!(8>jQuery.fn.jquery.split(".")[1])){jQuery.browser={};jQuery.browser.mozilla=!1;jQuery.browser.webkit=!1;jQuery.browser.opera=!1;jQuery.browser.msie=!1;var a=navigator.userAgent;jQuery.browser.name=navigator.appName;jQuery.browser.fullVersion=""+parseFloat(navigator.appVersion);jQuery.browser.majorVersion=parseInt(navigator.appVersion,10);var c,b;if(-1!=(b=a.indexOf("Opera"))){if(jQuery.browser.opera=!0,jQuery.browser.name="Opera",jQuery.browser.fullVersion=a.substring(b+6),-1!=(b= a.indexOf("Version")))jQuery.browser.fullVersion=a.substring(b+8)}else if(-1!=(b=a.indexOf("MSIE")))jQuery.browser.msie=!0,jQuery.browser.name="Microsoft Internet Explorer",jQuery.browser.fullVersion=a.substring(b+5);else if(-1!=(b=a.indexOf("Chrome")))jQuery.browser.webkit=!0,jQuery.browser.name="Chrome",jQuery.browser.fullVersion=a.substring(b+7);else if(-1!=(b=a.indexOf("Safari"))){if(jQuery.browser.webkit=!0,jQuery.browser.name="Safari",jQuery.browser.fullVersion=a.substring(b+7),-1!=(b=a.indexOf("Version")))jQuery.browser.fullVersion= a.substring(b+8)}else if(-1!=(b=a.indexOf("Firefox")))jQuery.browser.mozilla=!0,jQuery.browser.name="Firefox",jQuery.browser.fullVersion=a.substring(b+8);else if((c=a.lastIndexOf(" ")+1)<(b=a.lastIndexOf("/")))jQuery.browser.name=a.substring(c,b),jQuery.browser.fullVersion=a.substring(b+1),jQuery.browser.name.toLowerCase()==jQuery.browser.name.toUpperCase()&&(jQuery.browser.name=navigator.appName);if(-1!=(a=jQuery.browser.fullVersion.indexOf(";")))jQuery.browser.fullVersion=jQuery.browser.fullVersion.substring(0, a);if(-1!=(a=jQuery.browser.fullVersion.indexOf(" ")))jQuery.browser.fullVersion=jQuery.browser.fullVersion.substring(0,a);jQuery.browser.majorVersion=parseInt(""+jQuery.browser.fullVersion,10);isNaN(jQuery.browser.majorVersion)&&(jQuery.browser.fullVersion=""+parseFloat(navigator.appVersion),jQuery.browser.majorVersion=parseInt(navigator.appVersion,10));jQuery.browser.version=jQuery.browser.majorVersion}})(jQuery);
+(function () {
+	if (!(8 > jQuery.fn.jquery.split(".")[1])) {
+		jQuery.browser = {};
+		jQuery.browser.mozilla = !1;
+		jQuery.browser.webkit = !1;
+		jQuery.browser.opera = !1;
+		jQuery.browser.msie = !1;
+		var a = navigator.userAgent;
+		jQuery.browser.name = navigator.appName;
+		jQuery.browser.fullVersion = "" + parseFloat(navigator.appVersion);
+		jQuery.browser.majorVersion = parseInt(navigator.appVersion, 10);
+		var c, b;
+		if (-1 != (b = a.indexOf("Opera"))) {
+			if (jQuery.browser.opera = !0, jQuery.browser.name = "Opera", jQuery.browser.fullVersion = a.substring(b + 6), -1 != (b = a.indexOf("Version")))jQuery.browser.fullVersion = a.substring(b + 8)
+		} else if (-1 != (b = a.indexOf("MSIE")))jQuery.browser.msie = !0, jQuery.browser.name = "Microsoft Internet Explorer", jQuery.browser.fullVersion = a.substring(b + 5); else if (-1 != (b = a.indexOf("Chrome")))jQuery.browser.webkit = !0, jQuery.browser.name = "Chrome", jQuery.browser.fullVersion = a.substring(b + 7); else if (-1 != (b = a.indexOf("Safari"))) {
+			if (jQuery.browser.webkit = !0, jQuery.browser.name = "Safari", jQuery.browser.fullVersion = a.substring(b + 7), -1 != (b = a.indexOf("Version")))jQuery.browser.fullVersion = a.substring(b + 8)
+		} else if (-1 != (b = a.indexOf("Firefox")))jQuery.browser.mozilla = !0, jQuery.browser.name = "Firefox", jQuery.browser.fullVersion = a.substring(b + 8); else if ((c = a.lastIndexOf(" ") + 1) < (b = a.lastIndexOf("/")))jQuery.browser.name = a.substring(c, b), jQuery.browser.fullVersion = a.substring(b + 1), jQuery.browser.name.toLowerCase() == jQuery.browser.name.toUpperCase() && (jQuery.browser.name = navigator.appName);
+		if (-1 != (a = jQuery.browser.fullVersion.indexOf(";")))jQuery.browser.fullVersion = jQuery.browser.fullVersion.substring(0, a);
+		if (-1 != (a = jQuery.browser.fullVersion.indexOf(" ")))jQuery.browser.fullVersion = jQuery.browser.fullVersion.substring(0, a);
+		jQuery.browser.majorVersion = parseInt("" + jQuery.browser.fullVersion, 10);
+		isNaN(jQuery.browser.majorVersion) && (jQuery.browser.fullVersion = "" + parseFloat(navigator.appVersion), jQuery.browser.majorVersion = parseInt(navigator.appVersion, 10));
+		jQuery.browser.version = jQuery.browser.majorVersion
+	}
+})(jQuery);
 
 /*******************************************************************************
  * jQuery.mb.components: jquery.mb.CSSAnimate
@@ -71,30 +94,333 @@ events.winResize = isDevice ? "orientationchange" : "resize";
 /*****************************************************************************/
 
 jQuery.fn.unselectable = function () {
-	this.each(function () {
+	return this.each(function () {
 		jQuery(this).css({
 			"-moz-user-select"  : "none",
 			"-khtml-user-select": "none",
 			"user-select"       : "none"
 		}).attr("unselectable", "on");
 	});
-	return jQuery(this);
 };
 
+//jQuery.getScript("inc/fastfix.js");
 
 (function ($) {
+	$.scrollax = {
+		name    : "jquery.mb.scrollax",
+		author  : "Matteo Bicocchi (pupunzi)",
+		version : "1.1",
+		defaults: {
+			elements          : "[data-start]",
+			wheelSpeed        : 10,
+			scrollStep        : 1,
+			direction         : "vertical",
+			showSteps         : true,
+			preloadImages     : true,
+			onBeforePreloading: function () { $("body").hide(); console.debug("start loading")},
+			onPreloading      : function (counter, tot) { console.debug(counter, "/", tot)},
+			onEndPreloading   : function () {$("body").show(); console.debug("images loaded")}
+		},
+
+		init: function (options) {
+			$.extend($.scrollax.defaults, options);
+
+			if ($.scrollax.defaults.preloadImages) {
+				$.scrollax.defaults.onBeforePreloading();
+				$.preloadImages(function () {
+					$.scrollax.defaults.onEndPreloading();
+				});
+
+			}
+
+			$.timeline.wheelSpeed = $.scrollax.defaults.wheelSpeed * 10;
+			$.timeline.scrollStep = $.scrollax.defaults.scrollStep * 10;
+
+//			direction works only for touch devices.
+			$.timeline.direction = $.scrollax.defaults.direction;
+
+			$.scrollax.els = $($.scrollax.defaults.elements);
+			$.scrollax.scrolled = 0;
+			$.scrollax.maxScroll = 0;
+			$.scrollax.els.each(function (i) {
+				$.scrollax.addElement(this);
+			});
+
+			$(document).off("timelineChanged.scrollax").on("timelineChanged.scrollax", function (e) {
+
+				$.scrollax.els.each(function () {
+					$(this).renderAnimation(e.pos);
+				});
+
+				var isPageMarker = $.timeline.pageMarkers.indexOf($.timeline.pos) >= 0;
+
+				if (isPageMarker)
+					$.timeline.stopMoveBy();
+
+				$(document).trigger("timeline_" + e.pos);
+				if (typeof $.timeline.events[e.pos] === "function") {
+					$.timeline.events[e.pos]();
+				}
+			});
+
+			if (!$.browser.msie)
+				$(window).off(events.winResize + ".scrollax").on(events.winResize + ".scrollax", function () {
+					clearTimeout($.scrollax.restart);
+					$.scrollax.restart = setTimeout(function () {
+						self.location.href = self.location.href;
+					}, 150);
+				});
+
+		},
+
+		addElement: function (el) {
+			var i, $el = $(el);
+			el.id = el.id || "id_" + new Date().getTime();
+
+			var position = $el.css("position") == "static" ? "relative" : $el.css("position");
+			$el.addClass("scrollaxEl").css({position: position});//, width:$el.css("width"),top:$el.position().top, left: $el.position().left,
+			var obj = null;
+			if (!$.isEmptyObject($el.data()) && !el.isInit) {
+				obj = {};
+				obj.id = "anim_1";
+				for (i in $el.data()) {
+					obj[i] = $el.data()[i];
+				}
+			}
+
+			el.isInit = true;
+			/**
+			 *
+			 * @param start "auto" or (int) scroll position.
+			 * @param end (int) scroll position; if @duration is defined this will be ignored.
+			 * @param duration (int) scroll ticks.
+			 * @param startanimation (Object) The CSS that define de start layout of the animation.
+			 * @param endanimation (Object) The CSS that define de end layout of the animation.
+			 * @constructor
+			 **/
+
+			/*Check the window scroll height according to animations timelines ************************/
+			$.timeline.frames = $.scrollax.maxScroll;
+			$.timeline.buildScroller();
+
+			$el.addScrollax(obj);
+
+			/*Apply the first defined animation to the element ************************/
+			var firstAnim = el.scrollax[0];
+			var css = {};
+			if (firstAnim.startanimation) {
+				css = $.scrollax.generateCss(firstAnim.startanimation);
+				$el.css(css);
+			}
+		},
+
+		addScrollax: function (options) {
+			var el = this.get(0), obj = options , i;
+
+			$.scrollax.els = $.scrollax.els.add($(el));
+
+			if (typeof obj.start == "number") {
+				obj.startScrollPos = obj.start;
+			} else {
+				obj.startScrollPos = $(el).position().top - $(window).height();
+				obj.startScrollPos = obj.startScrollPos < 0 ? 0 : obj.startScrollPos;
+			}
+
+			if (typeof obj.end == "number") {
+				obj.endScrollPos = obj.end;
+			} else {
+				obj.endScrollPos = $(el).position().top + ($(window).height() / 2);
+			}
+
+			if (typeof obj.duration == "number") {
+				obj.endScrollPos = obj.startScrollPos + obj.duration;
+			}
+
+			if (obj.startanimation && typeof obj.startanimation == "string") {
+				obj.startanimation = eval("(" + obj.startanimation + ")");
+			}
+
+			if (obj.endanimation && typeof obj.endanimation == "string") {
+				obj.endanimation = eval("(" + obj.endanimation + ")");
+			}
+
+
+			if (!el.scrollax)
+				el.scrollax = [];
+			el.scrollax.push(obj);
+			el.scrollax = $.unique(el.scrollax);
+
+			$.timeline.addPageMarker(obj.endScrollPos);
+
+			/*Check the window scroll height according to animations timelines ************************/
+			$.scrollax.maxScroll = $.scrollax.maxScroll < obj.endScrollPos + $(window).height() ? obj.endScrollPos + $(window).height() : $.scrollax.maxScroll;
+			$.timeline.refresh($.scrollax.maxScroll);
+
+			if ($.scrollax.defaults.showSteps)
+				$.scrollax.traceFrames();
+
+			if (obj.customEvent)
+				el.customEvent = obj.customEvent;
+
+			return this;
+
+		},
+
+		renderAnimation: function (pos) {
+			var el = this.get(0), x;
+			for (var i in el.scrollax) {
+				var obj = el.scrollax[i];
+
+				if (!obj.startanimation) {
+					obj.startanimation = {};
+					for (x in obj.endanimation) {
+						if (x === "scale" || x === "rotate" || x === "skew")
+							continue;
+
+						if (x === "backgroundX") {
+							obj.startanimation[x] = parseFloat($(el).css("background-position").split(' ')[0].replace(/[^0-9-]/g, ''));
+							continue;
+						}
+						if (x === "backgroundY") {
+							obj.startanimation[x] = parseFloat($(el).css("background-position").split(' ')[1].replace(/[^0-9-]/g, ''));
+							continue;
+						}
+						obj.startanimation[x] = parseFloat($(el).css(x));
+					}
+				}
+
+				if (!obj.endanimation) {
+					obj.endanimation = {};
+					for (x in obj.startanimation) {
+						if (x === "scale" || x === "rotate" || x === "skew")
+							continue;
+						if (x === "backgroundX") {
+							obj.endanimation[x] = parseFloat($(el).css("background-position").split(' ')[0].replace(/[^0-9-]/g, ''));
+							continue;
+						}
+						if (x === "backgroundY") {
+							obj.endanimation[x] = parseFloat($(el).css("background-position").split(' ')[1].replace(/[^0-9-]/g, ''));
+							continue;
+						}
+						obj.endanimation[x] = parseFloat($(el).css(x));
+					}
+				}
+
+				if (pos >= obj.startScrollPos && pos <= obj.endScrollPos) {
+					var animVal = $.scrollax.setPropVal(obj, pos);
+					var css = $.scrollax.generateCss(animVal);
+					$(el).css(css);
+
+					if (el.customEvent)
+						el.customEvent(pos, obj);
+
+				}
+			}
+		},
+
+		generateCss: function (obj) {
+			var sfx = "";
+			if ($.browser.webkit) {
+				sfx = "-webkit-";
+			} else if ($.browser.mozilla) {
+				sfx = "-moz-";
+			} else if ($.browser.opera) {
+				sfx = "-o-";
+			} else if ($.browser.msie) {
+				sfx = "-ms-";
+			}
+			var css = {};
+
+			for (var i in obj) {
+
+				if (!css[sfx + "transform"])
+					css[sfx + "transform"] = "";
+
+				if (i === "scale") {
+					css[sfx + "transform"] += " scale(" + obj[i] + ")";
+				} else if (i === "rotate") {
+					css[sfx + "transform"] += " rotate(" + obj[i] + "deg)";
+				} else if (i === "skew") {
+					css[sfx + "transform"] += " skew(" + obj[i] + ")";
+				} else if (i === "origin") {
+					css[sfx + "transform-origin"] = obj[i];
+				} else if (i === "backgroundX") {
+					css["background-position"] = obj[i] + "px ";
+				} else if (i === "backgroundY") {
+					if (!css["background-position"])
+						css["background-position"] = "0px ";
+
+					css["background-position"] += obj[i] + "px";
+				} else {
+					css[i] = obj[i];
+				}
+			}
+			return css;
+		},
+
+		setPropVal: function (obj, pos) {
+			var scrolled = pos - obj.startScrollPos;
+			var perc = (scrolled * 100) / (obj.endScrollPos - obj.startScrollPos);
+
+			var animCss = {};
+			for (var i in obj.startanimation) {
+				var diff = Math.abs(obj.endanimation[i] - obj.startanimation[i]);
+				var val = obj.startanimation[i] < obj.endanimation[i] ?
+						(obj.startanimation[i] + ((diff * perc) / 100)) : (obj.startanimation[i] - ((diff * perc) / 100));
+				//animCss[i] = val;
+				//Apply ease effects to the scroll animation
+				//f.ex.: $.easing.easeInQuad(null, elapsed, initialValue, amountOfChange, duration)
+				//cheat sheet: http://easings.net/
+				var ease = obj.ease ? obj.ease : jQuery.easing.def;
+				animCss[i] = $.easing[ease](null, scrolled, obj.startanimation[i], obj.endanimation[i] - obj.startanimation[i], obj.endScrollPos - obj.startScrollPos);
+			}
+			return animCss;
+		},
+
+		play: function (speed) {
+			if (!speed) speed = 10;
+			if ($.scrollax.autoplay) {
+				clearInterval($.scrollax.autoplay);
+				$.scrollax.autoplay = false;
+			} else {
+				var playPos = $.timeline.scroller.scrollTop();
+				$.scrollax.autoplay = setInterval(function () {
+					playPos += speed;
+					$.timeline.scroller.scrollTop(playPos);
+
+					if ($.timeline.frames <= ($.timeline.scroller.scrollTop() + $(window).height())) {
+						clearInterval($.scrollax.autoplay);
+						$.scrollax.autoplay = false;
+					}
+				}, 1)
+			}
+		},
+
+		traceFrames: function () {
+			$(".tracerStep").remove();
+			var step;
+			for (var i = 0; i <= $.timeline.frames; i += 20) {
+				if (i / 100 === Math.floor(i / 100)) {
+					step = $("<div/>").addClass("tracerStep").css({position: "absolute", right: 0, top: i, fontSize: 10, fontFamily: "Helvetica, sans-serif", color: "#fff", borderTop: "1px solid #fff", paddingRight: 10}).html(i);
+				} else {
+					step = $("<div/>").addClass("tracerStep small").css({position: "absolute", right: 0, top: i, borderBottom: "1px solid rgba(255,255,255,0.3)", paddingRight: 10}).html(" ");
+				}
+				$.timeline.scroller.append(step);
+			}
+		}
+	};
+
 	$.timeline = {
-		frames         : 4000,
-		direction      : "vertical",
-		pos            : 0,
-		pageMarkers:[],
-		buildScroller  : function () {
+		frames       : 4000,
+		pos          : 0,
+		pageMarkers  : [],
+		buildScroller: function () {
 			$(".scrollaxerCont").remove();
 			var scroller = $("<div/>").addClass("scrollaxer").css({width: 20, height: $.timeline.frames + $(window).height()});
-			var scrollerCont = $("<div/>").addClass("scrollaxerCont").css({width: 50, position: "fixed", top: 0, right: 0, overflowX: "hidden", overflowY: "visible", height: "100%", opacity:.5, zIndex: 9999});
+			var scrollerCont = $("<div/>").addClass("scrollaxerCont").css({width: 50, position: "fixed", top: 0, right: 0, overflowX: "hidden", overflowY: "visible", height: "100%", opacity: .5, zIndex: 9999});
 			scrollerCont.append(scroller);
 			scrollerCont.unselectable();
-			scrollerCont.on("mousewheel",function(event){
+			scrollerCont.on("mousewheel", function (event) {
 				event.preventDefault();
 			});
 
@@ -103,7 +429,7 @@ jQuery.fn.unselectable = function () {
 					$(this).animate({opacity: 1});
 				}).on("mouseleave", function () {
 							$.timeline.scroller.scrollTop($.timeline.pos);
-							$(this).animate({opacity:.5});
+							$(this).animate({opacity: .5});
 						});
 			else
 				scrollerCont.css({opacity: 1});
@@ -189,57 +515,52 @@ jQuery.fn.unselectable = function () {
 				});
 			}
 		},
-		addPageMarker: function(step){
+		addPageMarker: function (step) {
 
 			$.timeline.pageMarkers.push(step);
 
 		},
-		moveBy         : function (delta) {
+		moveBy       : function (delta) {
 
-			if($.timeline.isMoving && delta.sign() == $.timeline.runningDeltaSign)
+			if ($.timeline.isMoving && delta.sign() == $.timeline.runningDeltaSign)
 				return;
 
 			clearInterval($.timeline.step);
 
 			$.timeline.isMoving = true;
-			$.timeline.runningDeltaSign =  delta.sign() ;
+			$.timeline.runningDeltaSign = delta.sign();
 
 			var counter = 0;
-			$.timeline.step = setInterval(function(){
+			$.timeline.step = setInterval(function () {
 				counter++;
+				var reallyStop = true;
 
-				if (counter > ($.timeline.wheelSpeed/$.timeline.scrollStep) ){
-
-					var nextPageMarker = null;
-
-					var reallyStop = true;
-
-					for (var pmi in $.timeline.pageMarkers){
+				if (counter > ($.timeline.wheelSpeed / $.timeline.scrollStep) && !isDevice) {
+					for (var pmi in $.timeline.pageMarkers) {
 						var pm = $.timeline.pageMarkers[pmi];
-						if (pm > $.timeline.pos && delta.sign() == 1 && pm < ($.timeline.pos + ($.timeline.wheelSpeed*2)+1) ){
+						if (pm > $.timeline.pos && delta.sign() == 1 && pm < ($.timeline.pos + ($.timeline.wheelSpeed * 2) + 1)) {
 							reallyStop = false;
-							console.debug("reallyStop  ", reallyStop)
 						}
 
 					}
-					if(reallyStop)
+					if (reallyStop)
 						$.timeline.stopMoveBy();
 				}
 				var d = $.timeline.scrollStep * delta.sign();
 
 				$.timeline.delta = $.timeline.scroller.scrollTop() + d;
 				$.timeline.scroller.scrollTop($.timeline.delta);
-			},10);
+			}, 10);
 
 		},
 
-		stopMoveBy: function(){
+		stopMoveBy: function () {
 			clearInterval($.timeline.step);
 			$.timeline.isMoving = false;
 		},
 
 		moveTo         : function (val) {
-			var time = $.timeline.scroller.scrollTop() ? Math.abs($.timeline.scroller.scrollTop()* 3 ) : Math.abs(val* 5 );
+			var time = $.timeline.scroller.scrollTop() ? Math.abs($.timeline.scroller.scrollTop() * 3) : Math.abs(val * 5);
 			$.timeline.scroller.animate({scrollTop: val}, time, "linear");//"easeInOutQuint"
 		},
 		refresh        : function (val) {
@@ -254,6 +575,7 @@ jQuery.fn.unselectable = function () {
 		removeEvent    : function (frame) {
 			delete $.timeline.events[frame];
 		},
+
 		switchDirection: function () {
 			if ($.timeline.direction == "vertical") {
 				$.timeline.direction = "horizontal";
@@ -263,335 +585,36 @@ jQuery.fn.unselectable = function () {
 		}
 	};
 
-	$.scrollax = {
-		name    : "jquery.mb.scrollax",
-		author  : "Matteo Bicocchi (pupunzi)",
-		version : "1.1",
-		defaults: {
-			elements : "[data-start]",
-			wheelSpeed: 200,
-			scrollStep: 15,
-			direction: "vertical",
-			showSteps: true,
-			preloadImages:true,
-			onBeforePreloading:function(){},
-			onPreloading:function(counter, tot){},
-			onEndPreloading:function(){}
-		},
-
-		init: function (options) {
-			$.extend($.scrollax.defaults, options);
-
-			if($.scrollax.defaults.preloadImages){
-
-				$.scrollax.defaults.onBeforePreloading();
-				$.preloadImages(function(){
-					$.scrollax.defaults.onEndPreloading();
-				});
-
-			}
-
-			$.timeline.wheelSpeed = $.scrollax.defaults.wheelSpeed*10;
-			$.timeline.scrollStep = $.scrollax.defaults.scrollStep*10;
-
-			$.scrollax.els = $($.scrollax.defaults.elements);
-			$.scrollax.scrolled = 0;
-			$.scrollax.maxScroll = 0;
-			$.scrollax.els.each(function (i) {
-				$.scrollax.addElement(this);
-			});
-
-			$(document).off("timelineChanged.scrollax").on("timelineChanged.scrollax", function (e) {
-
-				$.scrollax.els.each(function () {
-					$(this).renderAnimation(e.pos);
-				});
-
-				var isPageMarker = $.timeline.pageMarkers.indexOf($.timeline.pos) >= 0;
-//				console.debug($.timeline.pos, isPageMarker);
-
-				if(isPageMarker)
-					$.timeline.stopMoveBy();
-
-				$(document).trigger("timeline_"+ e.pos);
-				if (typeof $.timeline.events[e.pos] === "function") {
-					$.timeline.events[e.pos]();
-				}
-			});
-
-			if(!$.browser.msie)
-				$(window).off(events.winResize + ".scrollax").on(events.winResize + ".scrollax", function () {
-					clearTimeout($.scrollax.restart);
-					$.scrollax.restart = setTimeout(function () {
-						self.location.href = self.location.href;
-					}, 150);
-				});
-
-		},
-
-		addElement: function (el) {
-			var i, $el = $(el);
-			el.id = el.id || "id_" + new Date().getTime();
-
-			var position = $el.css("position") == "static" ? "relative" : $el.css("position");
-			$el.addClass("scrollaxEl").css({position: position});//, width:$el.css("width"),top:$el.position().top, left: $el.position().left,
-			var obj = null;
-			if (!$.isEmptyObject($el.data()) && !el.isInit) {
-				obj = {};
-				obj.id = "anim_1";
-				for (i in $el.data()) {
-					obj[i] = $el.data()[i];
-				}
-			}
-
-			el.isInit = true;
-			/**
-			 *
-			 * @param start "auto" or (int) scroll position.
-			 * @param end (int) scroll position; if @duration is defined this will be ignored.
-			 * @param duration (int) scroll ticks.
-			 * @param startanimation (Object) The CSS that define de start layout of the animation.
-			 * @param endanimation (Object) The CSS that define de end layout of the animation.
-			 * @constructor
-			 **/
-
-			/*Check the window scroll height according to animations timelines ************************/
-			$.timeline.frames = $.scrollax.maxScroll;
-			$.timeline.buildScroller();
-
-			$el.addScrollax(obj);
-
-			/*Apply the first defined animation to the element ************************/
-			var firstAnim = el.scrollax[0];
-			var css = {};
-			if (firstAnim.startanimation) {
-				css = $.scrollax.generateCss(firstAnim.startanimation);
-				$el.css(css);
-			}
-		},
-
-		addScrollax: function (options) {
-			var el = this.get(0), obj = options , i;
-
-			$.scrollax.els = $.scrollax.els.add($(el));
-
-			if (typeof obj.start == "number") {
-				obj.startScrollPos = obj.start;
-			} else {
-				obj.startScrollPos = $(el).position().top - $(window).height();
-				obj.startScrollPos = obj.startScrollPos < 0 ? 0 : obj.startScrollPos;
-			}
-
-			if (typeof obj.end == "number") {
-				obj.endScrollPos = obj.end;
-			} else {
-				obj.endScrollPos = $(el).position().top + ($(window).height() / 2);
-			}
-
-			if (typeof obj.duration == "number") {
-				obj.endScrollPos = obj.startScrollPos + obj.duration;
-			}
-
-			if (obj.startanimation && typeof obj.startanimation == "string") {
-				obj.startanimation = eval("(" + obj.startanimation + ")");
-			}
-
-			if (obj.endanimation && typeof obj.endanimation == "string") {
-				obj.endanimation = eval("(" + obj.endanimation + ")");
-			}
-
-			if (!el.scrollax)
-				el.scrollax = [];
-			el.scrollax.push(obj);
-			el.scrollax = $.unique(el.scrollax);
-
-			/*Check the window scroll height according to animations timelines ************************/
-			$.scrollax.maxScroll = $.scrollax.maxScroll < obj.endScrollPos + $(window).height() ? obj.endScrollPos + $(window).height() : $.scrollax.maxScroll;
-			$.timeline.refresh($.scrollax.maxScroll);
-
-			if ($.scrollax.defaults.showSteps)
-				$.scrollax.traceFrames();
-
-			if(obj.customEvent)
-				el.customEvent = obj.customEvent;
-
-			return this;
-
-		},
-
-		renderAnimation: function (pos) {
-			var el = this.get(0), x;
-			for (var i in el.scrollax) {
-				var obj = el.scrollax[i];
-
-				if (!obj.startanimation) {
-					obj.startanimation = {};
-					for (x in obj.endanimation) {
-						if (x === "scale" || x === "rotate" || x === "skew")
-							continue;
-
-						if (x === "backgroundX") {
-							obj.startanimation[x] = parseFloat($(el).css("background-position").split(' ')[0].replace(/[^0-9-]/g, ''));
-							continue;
-						}
-						if (x === "backgroundY") {
-							obj.startanimation[x] = parseFloat($(el).css("background-position").split(' ')[1].replace(/[^0-9-]/g, ''));
-							continue;
-						}
-						obj.startanimation[x] = parseFloat($(el).css(x));
-					}
-				}
-
-				if (!obj.endanimation) {
-					obj.endanimation = {};
-					for (x in obj.startanimation) {
-						if (x === "scale" || x === "rotate" || x === "skew")
-							continue;
-						if (x === "backgroundX") {
-							obj.endanimation[x] = parseFloat($(el).css("background-position").split(' ')[0].replace(/[^0-9-]/g, ''));
-							continue;
-						}
-						if (x === "backgroundY") {
-							obj.endanimation[x] = parseFloat($(el).css("background-position").split(' ')[1].replace(/[^0-9-]/g, ''));
-							continue;
-						}
-						obj.endanimation[x] = parseFloat($(el).css(x));
-					}
-				}
-
-				if (pos >= obj.startScrollPos && pos <= obj.endScrollPos) {
-					var animVal = $.scrollax.setPropVal(obj, pos);
-					var css = $.scrollax.generateCss(animVal);
-					$(el).css(css);
-
-					if(el.customEvent)
-						el.customEvent(pos, obj);
-
-				}
-			}
-		},
-
-		generateCss: function (obj) {
-			var sfx = "";
-			if ($.browser.webkit) {
-				sfx = "-webkit-";
-			} else if ($.browser.mozilla) {
-				sfx = "-moz-";
-			} else if ($.browser.opera) {
-				sfx = "-o-";
-			} else if ($.browser.msie) {
-				sfx = "-ms-";
-			}
-			var css = {};
-
-			for (var i in obj) {
-
-				if (!css[sfx + "transform"])
-					css[sfx + "transform"] = "";
-
-				if (i === "scale") {
-					css[sfx + "transform"] += " scale(" + obj[i] + ")";
-				} else if (i === "rotate") {
-					css[sfx + "transform"] += " rotate(" + obj[i] + "deg)";
-				} else if (i === "skew") {
-					css[sfx + "transform"] += " skew(" + obj[i] + ")";
-				} else if (i === "origin") {
-					css[sfx + "transform-origin"] = obj[i];
-				} else if (i === "backgroundX") {
-					css["background-position"] = obj[i] + "px ";
-				} else if (i === "backgroundY") {
-					if (!css["background-position"])
-						css["background-position"] = "0px ";
-
-					css["background-position"] += obj[i] + "px";
-				} else {
-					css[i] = obj[i];
-				}
-			}
-			return css;
-		},
-
-		setPropVal: function (obj, pos) {
-			var scrolled = pos - obj.startScrollPos;
-			var perc = (scrolled * 100) / (obj.endScrollPos - obj.startScrollPos);
-
-			var animCss = {};
-			for (var i in obj.startanimation) {
-				var diff = Math.abs(obj.endanimation[i] - obj.startanimation[i]);
-				var val = obj.startanimation[i] < obj.endanimation[i] ?
-						(obj.startanimation[i] + ((diff * perc) / 100)) : (obj.startanimation[i] - ((diff * perc) / 100));
-				//animCss[i] = val;
-				//Apply ease effects to the scroll animation
-				//f.ex.: $.easing.easeInQuad(null, elapsed, initialValue, amountOfChange, duration)
-				//cheat sheet: http://easings.net/
-				var ease = obj.ease ? obj.ease : jQuery.easing.def;
-				animCss[i] = $.easing[ease](null, scrolled, obj.startanimation[i], obj.endanimation[i] - obj.startanimation[i], obj.endScrollPos - obj.startScrollPos);
-			}
-			return animCss;
-		},
-
-		play      : function (speed) {
-			if (!speed) speed = 10;
-			if ($.scrollax.autoplay) {
-				clearInterval($.scrollax.autoplay);
-				$.scrollax.autoplay = false;
-			} else {
-				var playPos = $.timeline.scroller.scrollTop();
-				$.scrollax.autoplay = setInterval(function () {
-					playPos += speed;
-					$.timeline.scroller.scrollTop(playPos);
-
-					if ($.timeline.frames <= ($.timeline.scroller.scrollTop() + $(window).height())) {
-						clearInterval($.scrollax.autoplay);
-						$.scrollax.autoplay = false;
-					}
-				}, 1)
-			}
-		},
-
-		traceFrames: function () {
-			$(".tracerStep").remove();
-			var step;
-			for (var i = 0; i <= $.timeline.frames; i += 20) {
-				if (i / 100 === Math.floor(i / 100)) {
-					step = $("<div/>").addClass("tracerStep").css({position: "absolute", right: 0, top: i, fontSize: 10, fontFamily: "Helvetica, sans-serif", color: "#fff", borderTop: "1px solid #fff", paddingRight: 10}).html(i);
-				} else {
-					step = $("<div/>").addClass("tracerStep small").css({position: "absolute", right: 0, top: i, borderBottom: "1px solid rgba(255,255,255,0.3)", paddingRight: 10}).html(" ");
-				}
-				$.timeline.scroller.append(step);
-			}
-		}
-	};
 
 	$.fn.scrollax = $.scrollax.init;
 	$.fn.renderAnimation = $.scrollax.renderAnimation;
 	$.fn.addScrollax = $.scrollax.addScrollax;
 
 
-	jQuery.preloadImages = function(callback){
+	jQuery.preloadImages = function (callback) {
 
 		var sheets = document.styleSheets;//array of stylesheets
 
 		/*Images in stylesheets*/
-		for(var i = 0; i<sheets.length; i++){//loop through each stylesheet
+		for (var i = 0; i < sheets.length; i++) {//loop through each stylesheet
 			var cssPile = '';//create large string of all css rules in sheet
 			var csshref = (sheets[i].href) ? sheets[i].href : 'window.location.href';
-			if(document.styleSheets[i].cssRules){//w3
+			if (document.styleSheets[i].cssRules) {//w3
 				var thisSheetRules = document.styleSheets[i].cssRules; //w3
-				for(var j = 0; j<thisSheetRules.length; j++){
-					cssPile+= thisSheetRules[j].cssText;
+				for (var j = 0; j < thisSheetRules.length; j++) {
+					cssPile += thisSheetRules[j].cssText;
 				}
 			}
 			else {
-				cssPile+= document.styleSheets[i].cssText;
+				cssPile += document.styleSheets[i].cssText;
 			}
 			var imgUrls = cssPile.match(/[^\(]+\.(gif|jpg|jpeg|png)/g);//reg ex to get a string of between a "(" and a ".filename"
 			var arr = jQuery.makeArray(imgUrls);//create array from regex obj
 		}
 
 		/*Images in inline style*/
-		var inLineImages=[];
-		$('[style*="background"]').each(function() {
+		var inLineImages = [];
+		$('[style*="background"]').each(function () {
 			var style = $(this).attr('style');
 
 			var pattern = /url\(\s*(['"]?)(.*?)\1\s*\)/g;
@@ -606,16 +629,16 @@ jQuery.fn.unselectable = function () {
 
 		/*Images */
 		var elementImages = [];
-		$("img").each(function(){
+		$("img").each(function () {
 			elementImages.push($(this).attr("src"));
 		});
 		jQuery.merge(arr, elementImages);
 
 		arr = jQuery.unique(arr);
 		var counter = 0;
-		for (var i in arr){
+		for (var i in arr) {
 			var img = $("<img/>");
-			img.on("load error",function(){
+			img.on("load error",function () {
 				counter++;
 				$.scrollax.defaults.onPreloading(counter, arr.length);
 				;
@@ -628,6 +651,6 @@ jQuery.fn.unselectable = function () {
 
 })(jQuery);
 
-Number.prototype.sign = function(){
-	return this >0 ? 1 : -1;
+Number.prototype.sign = function () {
+	return this > 0 ? 1 : -1;
 }
