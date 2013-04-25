@@ -14,7 +14,7 @@
  *  http://www.opensource.org/licenses/mit-license.php
  *  http://www.gnu.org/licenses/gpl.html
  *
- *  last modified: 25/04/13 18.49
+ *  last modified: 25/04/13 22.08
  *  *****************************************************************************
  */
 
@@ -119,7 +119,7 @@ jQuery.fn.unselectable = function () {
 			preloadImages     : true,
 			onBeforePreloading: function () { $("body").hide(); console.debug("start loading")},
 			onPreloading      : function (counter, tot) { console.debug(counter, "/", tot)},
-			onEndPreloading   : function () {$("body").show(); console.debug("images loaded")}
+			onEndPreloading   : function () {$("body").show();$.timeline.moveTo(100); console.debug("images loaded")}
 		},
 
 		init: function (options) {
@@ -133,9 +133,8 @@ jQuery.fn.unselectable = function () {
 
 			}
 
-			$.timeline.wheelSpeed = $.scrollax.defaults.wheelSpeed * 10;
-			$.timeline.scrollStep = $.scrollax.defaults.scrollStep * 10;
-
+			$.timeline.wheelSpeed = $.scrollax.defaults.wheelSpeed *  10;
+			$.timeline.scrollStep = $.scrollax.defaults.scrollStep *  10;
 //			direction works only for touch devices.
 			$.timeline.direction = $.scrollax.defaults.direction;
 
@@ -168,7 +167,7 @@ jQuery.fn.unselectable = function () {
 					clearTimeout($.scrollax.restart);
 					$.scrollax.restart = setTimeout(function () {
 						self.location.href = self.location.href;
-					}, 150);
+					}, 300);
 				});
 
 		},
@@ -367,7 +366,7 @@ jQuery.fn.unselectable = function () {
 				var diff = Math.abs(obj.endanimation[i] - obj.startanimation[i]);
 				var val = obj.startanimation[i] < obj.endanimation[i] ?
 						(obj.startanimation[i] + ((diff * perc) / 100)) : (obj.startanimation[i] - ((diff * perc) / 100));
-				//animCss[i] = val;
+
 				//Apply ease effects to the scroll animation
 				//f.ex.: $.easing.easeInQuad(null, elapsed, initialValue, amountOfChange, duration)
 				//cheat sheet: http://easings.net/
@@ -479,10 +478,10 @@ jQuery.fn.unselectable = function () {
 				$.timeline.touch.y = 0;
 
 				$(document).on(events.move, function (e) {
-					event.preventDefault();
+					e.preventDefault();
 				});
 
-				$("body").on(events.start, function (e) {
+				$("body").off(events.start + ".scrollax").on(events.start + ".scrollax", function (e) {
 					var event = e;
 					e = e.originalEvent;
 					e = e.touches[0];
@@ -515,14 +514,14 @@ jQuery.fn.unselectable = function () {
 				});
 			}
 		},
+
 		addPageMarker: function (step) {
-
 			$.timeline.pageMarkers.push(step);
-
 		},
+
 		moveBy       : function (delta) {
 
-			if ($.timeline.isMoving && delta.sign() == $.timeline.runningDeltaSign)
+			if (($.timeline.isMoving && delta.sign() == $.timeline.runningDeltaSign) || !delta)
 				return;
 
 			clearInterval($.timeline.step);
@@ -535,10 +534,10 @@ jQuery.fn.unselectable = function () {
 				counter++;
 				var reallyStop = true;
 
-				if (counter > ($.timeline.wheelSpeed / $.timeline.scrollStep) && !isDevice) {
+				if (counter > ($.timeline.wheelSpeed / $.timeline.scrollStep)) {
 					for (var pmi in $.timeline.pageMarkers) {
 						var pm = $.timeline.pageMarkers[pmi];
-						if (pm > $.timeline.pos && delta.sign() == 1 && pm < ($.timeline.pos + ($.timeline.wheelSpeed * 2) + 1)) {
+						if (pm > $.timeline.pos && delta.sign() == 1 && pm < ($.timeline.pos + ($.timeline.wheelSpeed * 2) + 1) ) { //&& !isDevice
 							reallyStop = false;
 						}
 
@@ -550,7 +549,7 @@ jQuery.fn.unselectable = function () {
 
 				$.timeline.delta = $.timeline.scroller.scrollTop() + d;
 				$.timeline.scroller.scrollTop($.timeline.delta);
-			}, 10);
+			}, 1);
 
 		},
 

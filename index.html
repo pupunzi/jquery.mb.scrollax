@@ -16,7 +16,7 @@
   ~  http://www.opensource.org/licenses/mit-license.php
   ~  http://www.gnu.org/licenses/gpl.html
   ~
-  ~  last modified: 18/04/13 22.00
+  ~  last modified: 25/04/13 22.10
   ~  ******************************************************************************/
   -->
 
@@ -107,7 +107,9 @@
 	<script>
 		$(function(){
 			$.scrollax.init({
-				showSteps:true
+                wheelSpeed:10,
+                scrollStep: 1,
+                showSteps:true
 			});
 
 			$.timeline.addEvent(100,function(){
