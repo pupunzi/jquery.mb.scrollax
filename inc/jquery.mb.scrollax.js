@@ -113,13 +113,13 @@ jQuery.fn.unselectable = function () {
 		defaults: {
 			elements          : "[data-start]",
 			wheelSpeed        : 10,
-			scrollStep        : 1,
+			scrollStep        : 5,
 			direction         : "vertical",
 			showSteps         : true,
 			preloadImages     : true,
-			onBeforePreloading: function () { $("body").hide(); console.debug("start loading")},
+			onBeforePreloading: function () { $("body").css({visibility:"hidden", opacity:0}); console.debug("start loading")},
 			onPreloading      : function (counter, tot) { console.debug(counter, "/", tot)},
-			onEndPreloading   : function () {$("body").show();$.timeline.moveTo(100); console.debug("images loaded")}
+			onEndPreloading   : function () {$("body").css({visibility:"visible"}).fadeTo(1000,1); console.debug("images loaded")}
 		},
 
 		init: function (options) {
@@ -448,17 +448,17 @@ jQuery.fn.unselectable = function () {
 						$.timeline.pos = i;
 						$(document).trigger(event);
 					}
-				} else {
+				} else if (oldScrolled > newPos){
 					for (i = oldScrolled - 1; i >= newPos; i--) {
 						event.pos = i;
 						$.timeline.dir = "backward";
 						$.timeline.pos = i;
 						$(document).trigger(event);
 					}
+				}else{
+					event.pos = $.timeline.pos;
+					$(document).trigger(event);
 				}
-
-				event.pos = $.timeline.pos;
-				$(document).trigger(event);
 			});
 
 			if (!isDevice) {
@@ -559,7 +559,8 @@ jQuery.fn.unselectable = function () {
 		},
 
 		moveTo         : function (val) {
-			var time = $.timeline.scroller.scrollTop() ? Math.abs($.timeline.scroller.scrollTop() * 3) : Math.abs(val * 5);
+			var time = $.timeline.scroller.scrollTop() ? Math.abs($.timeline.scroller.scrollTop() * 2) : Math.abs(val * 5);
+			var time = 2000;
 			$.timeline.scroller.animate({scrollTop: val}, time, "linear");//"easeInOutQuint"
 		},
 		refresh        : function (val) {
@@ -590,62 +591,82 @@ jQuery.fn.unselectable = function () {
 	$.fn.addScrollax = $.scrollax.addScrollax;
 
 
+
 	jQuery.preloadImages = function (callback) {
 
-		var sheets = document.styleSheets;//array of stylesheets
+		var imagesArray = [];
 
 		/*Images in stylesheets*/
-		for (var i = 0; i < sheets.length; i++) {//loop through each stylesheet
-			var cssPile = '';//create large string of all css rules in sheet
-			var csshref = (sheets[i].href) ? sheets[i].href : 'window.location.href';
-			if (document.styleSheets[i].cssRules) {//w3
-				var thisSheetRules = document.styleSheets[i].cssRules; //w3
-				for (var j = 0; j < thisSheetRules.length; j++) {
-					cssPile += thisSheetRules[j].cssText;
-				}
-			}
-			else {
-				cssPile += document.styleSheets[i].cssText;
-			}
-			var imgUrls = cssPile.match(/[^\(]+\.(gif|jpg|jpeg|png)/g);//reg ex to get a string of between a "(" and a ".filename"
-			var arr = jQuery.makeArray(imgUrls);//create array from regex obj
-		}
+		var sheets = $("style");//array of stylesheets
+		var cssPile = '';//create large string of all css rules in sheet
+
+		sheets.each(function(){//loop through each stylesheet
+			cssPile+= $(this).text();
+
+			/*
+			 var csshref = (sheets[i].href) ? sheets[i].href : 'window.location.href';
+			 var baseURLarr = csshref.split('/');//split href at / to make array
+			 baseURLarr.pop();//remove file path from baseURL array
+			 var baseURL = baseURLarr.join('/');//create base url for the images in this sheet (css file's dir)
+			 if(baseURL!="") baseURL+='/'; //tack on a / if needed
+
+			 if(sheets[i].cssRules){//w3
+			 console.debug(sheets[i])
+
+			 var thisSheetRules = sheets[i].cssRules; //w3
+
+			 for(var j = 0; j<thisSheetRules.length; j++){
+
+			 if(thisSheetRules[j].cssText)
+			 cssPile+= thisSheetRules[j].cssText.replace("\"","").replace("\'","");
+			 }
+			 } else {
+			 cssPile+= document.styleSheets[i].cssText;
+			 }
+			 */
+		});
+
+		var imgUrls = cssPile.match(/[^\(]+\.(jpg|jpeg|png)/g);//reg ex to get a string of between a "(" and a ".filename"
+		imagesArray = imgUrls;//jQuery.makeArray(imgUrls);//create array from regex obj
 
 		/*Images in inline style*/
-		var inLineImages = [];
 		$('[style*="background"]').each(function () {
-			var style = $(this).attr('style');
+			var style = $(this).attr('style').replace("\"","").replace("\'","");
 
 			var pattern = /url\(\s*(['"]?)(.*?)\1\s*\)/g;
 			var match = pattern.exec(style);
 
-			if (match) {
-				inLineImages.push(match[2]);
+			if (match && match[2]) {
+				imagesArray.push(match[2]);
 			}
 		});
 
-		jQuery.merge(arr, inLineImages);
-
 		/*Images */
-		var elementImages = [];
 		$("img").each(function () {
-			elementImages.push($(this).attr("src"));
+			imagesArray.push($(this).attr("src"));
 		});
-		jQuery.merge(arr, elementImages);
 
-		arr = jQuery.unique(arr);
+		imagesArray = jQuery.unique(imagesArray);
 		var counter = 0;
-		for (var i in arr) {
+		for (var x in imagesArray) {
 			var img = $("<img/>");
-			img.on("load error",function () {
+			img.attr("src", imagesArray[x]).on("load",function () {
 				counter++;
-				$.scrollax.defaults.onPreloading(counter, arr.length);
-				;
-				if (counter == arr.length && typeof callback == "function")
+				$.scrollax.defaults.onPreloading(counter, imagesArray.length);
+
+				if (counter == imagesArray.length && typeof callback == "function")
 					callback();
-			}).attr("src", arr[i]);
+			}).on("error", function(){
+						counter++;
+						$.scrollax.defaults.onPreloading(counter, imagesArray.length);
+						if (counter == imagesArray.length && typeof callback == "function"){
+							callback();
+						}
+					})
+
 		}
-		return arr;
+		return imagesArray;
+
 	}
 
 })(jQuery);
