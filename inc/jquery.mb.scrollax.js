@@ -59,7 +59,7 @@ var events = {};
 events.start = isDevice ? "touchstart" : "mousedown";
 events.move = isDevice ? "touchmove" : "mousemove";
 events.end = isDevice ? "touchend" : "mouseup";
-events.winResize = isDevice ? "orientationchange" : "resize";
+events.winResize = "resize";
 
 /*jquery.mousewheel.js
  *! Copyright (c) 2011 Brandon Aaron (http://brandonaaron.net)
@@ -117,9 +117,9 @@ jQuery.fn.unselectable = function () {
 			direction         : "vertical",
 			showSteps         : true,
 			preloadImages     : true,
-			onBeforePreloading: function () { $("body").css({visibility:"hidden", opacity:0}); console.debug("start loading")},
-			onPreloading      : function (counter, tot) { console.debug(counter, "/", tot)},
-			onEndPreloading   : function () {$("body").css({visibility:"visible"}).fadeTo(1000,1); console.debug("images loaded")}
+			onBeforePreloading: function () { /*$("body").css({visibility:"hidden", opacity:0}); console.debug("start loading")*/},
+			onPreloading      : function (counter, tot) { /*console.debug(counter, "/", tot)*/},
+			onEndPreloading   : function () {/*$("body").css({visibility:"visible"}).fadeTo(1000,1); console.debug("images loaded")*/}
 		},
 
 		init: function (options) {
@@ -147,6 +147,14 @@ jQuery.fn.unselectable = function () {
 
 			$(document).off("timelineChanged.scrollax").on("timelineChanged.scrollax", function (e) {
 
+
+				// if two evenst have been settend at the same position the last will overwrite the other.
+				// todo: make an array of events for each pos.
+				if (typeof $.timeline.events[e.pos] === "function") {
+					$.timeline.events[e.pos]();
+					return;
+				}
+
 				$.scrollax.els.each(function () {
 					$(this).renderAnimation(e.pos);
 				});
@@ -156,10 +164,8 @@ jQuery.fn.unselectable = function () {
 				if (isPageMarker)
 					$.timeline.stopMoveBy();
 
-				$(document).trigger("timeline_" + e.pos);
-				if (typeof $.timeline.events[e.pos] === "function") {
-					$.timeline.events[e.pos]();
-				}
+				//$(document).trigger("timeline_" + e.pos);
+
 			});
 
 			if (!$.browser.msie)
@@ -236,11 +242,11 @@ jQuery.fn.unselectable = function () {
 			}
 
 			if (obj.startanimation && typeof obj.startanimation == "string") {
-				obj.startanimation = eval("(" + obj.startanimation + ")");
+				obj.startanimation = JSON.parse(obj.startanimation.replace(/'/g, "\""));
 			}
 
 			if (obj.endanimation && typeof obj.endanimation == "string") {
-				obj.endanimation = eval("(" + obj.endanimation + ")");
+				obj.endanimation = JSON.parse(obj.endanimation.replace(/'/g, "\""));
 			}
 
 
@@ -248,8 +254,6 @@ jQuery.fn.unselectable = function () {
 				el.scrollax = [];
 			el.scrollax.push(obj);
 			el.scrollax = $.unique(el.scrollax);
-
-			$.timeline.addPageMarker(obj.endScrollPos);
 
 			/*Check the window scroll height according to animations timelines ************************/
 			$.scrollax.maxScroll = $.scrollax.maxScroll < obj.endScrollPos + $(window).height() ? obj.endScrollPos + $(window).height() : $.scrollax.maxScroll;
@@ -415,6 +419,8 @@ jQuery.fn.unselectable = function () {
 		pageMarkers  : [],
 		buildScroller: function () {
 			$(".scrollaxerCont").remove();
+
+
 			var scroller = $("<div/>").addClass("scrollaxer").css({width: 20, height: $.timeline.frames + $(window).height()});
 			var scrollerCont = $("<div/>").addClass("scrollaxerCont").css({width: 50, position: "fixed", top: 0, right: 0, overflowX: "hidden", overflowY: "visible", height: "100%", opacity: .5, zIndex: 9999});
 			scrollerCont.append(scroller);
@@ -477,7 +483,7 @@ jQuery.fn.unselectable = function () {
 				$.timeline.touch.x = 0;
 				$.timeline.touch.y = 0;
 
-				$(document).on(events.move, function (e) {
+				$("body").on(events.move, function (e) {
 					e.preventDefault();
 				});
 
@@ -498,7 +504,6 @@ jQuery.fn.unselectable = function () {
 
 						$.timeline.touch.moveX = e.clientX;
 						$.timeline.touch.moveY = e.clientY;
-
 						var d;
 						if ($.timeline.direction == "vertical") {
 							d = +($.timeline.touch.y - $.timeline.touch.moveY);
@@ -549,7 +554,7 @@ jQuery.fn.unselectable = function () {
 
 				$.timeline.delta = $.timeline.scroller.scrollTop() + d;
 				$.timeline.scroller.scrollTop($.timeline.delta);
-			}, 1);
+			},.1);
 
 		},
 
@@ -565,7 +570,9 @@ jQuery.fn.unselectable = function () {
 		},
 		refresh        : function (val) {
 			$.timeline.frames = val;
+
 			$(".scrollaxer").css({height: $.timeline.frames});
+
 		},
 		addEvent       : function (frame, func) {
 			if (!$.timeline.events)
@@ -602,32 +609,10 @@ jQuery.fn.unselectable = function () {
 
 		sheets.each(function(){//loop through each stylesheet
 			cssPile+= $(this).text();
-
-			/*
-			 var csshref = (sheets[i].href) ? sheets[i].href : 'window.location.href';
-			 var baseURLarr = csshref.split('/');//split href at / to make array
-			 baseURLarr.pop();//remove file path from baseURL array
-			 var baseURL = baseURLarr.join('/');//create base url for the images in this sheet (css file's dir)
-			 if(baseURL!="") baseURL+='/'; //tack on a / if needed
-
-			 if(sheets[i].cssRules){//w3
-			 console.debug(sheets[i])
-
-			 var thisSheetRules = sheets[i].cssRules; //w3
-
-			 for(var j = 0; j<thisSheetRules.length; j++){
-
-			 if(thisSheetRules[j].cssText)
-			 cssPile+= thisSheetRules[j].cssText.replace("\"","").replace("\'","");
-			 }
-			 } else {
-			 cssPile+= document.styleSheets[i].cssText;
-			 }
-			 */
 		});
 
 		var imgUrls = cssPile.match(/[^\(]+\.(jpg|jpeg|png)/g);//reg ex to get a string of between a "(" and a ".filename"
-		imagesArray = imgUrls;//jQuery.makeArray(imgUrls);//create array from regex obj
+		imagesArray = jQuery.makeArray(imgUrls);//jQuery.makeArray(imgUrls);//create array from regex obj
 
 		/*Images in inline style*/
 		$('[style*="background"]').each(function () {
@@ -643,8 +628,10 @@ jQuery.fn.unselectable = function () {
 
 		/*Images */
 		$("img").each(function () {
-			imagesArray.push($(this).attr("src"));
+			var url = $(this).attr("src");
+			imagesArray.push(url);
 		});
+
 
 		imagesArray = jQuery.unique(imagesArray);
 		var counter = 0;
@@ -673,4 +660,26 @@ jQuery.fn.unselectable = function () {
 
 Number.prototype.sign = function () {
 	return this > 0 ? 1 : -1;
+}
+
+if (!Array.prototype.indexOf){
+	Array.prototype.indexOf = function(elt)
+	{
+		var len = this.length >>> 0;
+
+		var from = Number(arguments[1]) || 0;
+		from = (from < 0)
+				? Math.ceil(from)
+				: Math.floor(from);
+		if (from < 0)
+			from += len;
+
+		for (; from < len; from++)
+		{
+			if (from in this &&
+					this[from] === elt)
+				return from;
+		}
+		return -1;
+	};
 }
