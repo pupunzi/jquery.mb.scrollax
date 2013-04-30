@@ -14,7 +14,7 @@
  *  http://www.opensource.org/licenses/mit-license.php
  *  http://www.gnu.org/licenses/gpl.html
  *
- *  last modified: 25/04/13 22.08
+ *  last modified: 30/04/13 22.38
  *  *****************************************************************************
  */
 
@@ -59,7 +59,7 @@ var events = {};
 events.start = isDevice ? "touchstart" : "mousedown";
 events.move = isDevice ? "touchmove" : "mousemove";
 events.end = isDevice ? "touchend" : "mouseup";
-events.winResize = isDevice ? "orientationchange" : "resize";
+events.winResize = "resize";
 
 /*jquery.mousewheel.js
  *! Copyright (c) 2011 Brandon Aaron (http://brandonaaron.net)
@@ -117,9 +117,9 @@ jQuery.fn.unselectable = function () {
 			direction         : "vertical",
 			showSteps         : true,
 			preloadImages     : true,
-			onBeforePreloading: function () { $("body").css({visibility:"hidden", opacity:0}); console.debug("start loading")},
-			onPreloading      : function (counter, tot) { console.debug(counter, "/", tot)},
-			onEndPreloading   : function () {$("body").css({visibility:"visible"}).fadeTo(1000,1); console.debug("images loaded")}
+			onBeforePreloading: function () { /*$("body").css({visibility:"hidden", opacity:0}); console.debug("start loading")*/},
+			onPreloading      : function (counter, tot) { /*console.debug(counter, "/", tot)*/},
+			onEndPreloading   : function () {/*$("body").css({visibility:"visible"}).fadeTo(1000,1); console.debug("images loaded")*/}
 		},
 
 		init: function (options) {
@@ -147,19 +147,31 @@ jQuery.fn.unselectable = function () {
 
 			$(document).off("timelineChanged.scrollax").on("timelineChanged.scrollax", function (e) {
 
+
+				// if two evenst have been settend at the same position the last will overwrite the other.
+				// todo: make an array of events for each pos.
+				if (typeof $.timeline.events[e.pos] === "function") {
+					$.timeline.events[e.pos]();
+					return;
+				}
+
 				$.scrollax.els.each(function () {
 					$(this).renderAnimation(e.pos);
 				});
 
 				var isPageMarker = $.timeline.pageMarkers.indexOf($.timeline.pos) >= 0;
 
-				if (isPageMarker)
+				if (isPageMarker){
+					/*
+					 var event = $.Event("pageMarker");
+					 event.pageMarker = $.timeline.pos;
+					 $(document).trigger(event);
+					 */
 					$.timeline.stopMoveBy();
-
-				$(document).trigger("timeline_" + e.pos);
-				if (typeof $.timeline.events[e.pos] === "function") {
-					$.timeline.events[e.pos]();
+					$(".pageMarker").removeClass("sel");
+					$("#slide_"+$.timeline.pos).addClass("sel");
 				}
+
 			});
 
 			if (!$.browser.msie)
@@ -188,9 +200,10 @@ jQuery.fn.unselectable = function () {
 			}
 
 			el.isInit = true;
+			
 			/**
 			 *
-			 * @param start "auto" or (int) scroll position.
+			 * @param start "auto" or (int) scroll position. "auto" will set the object just below the window height.
 			 * @param end (int) scroll position; if @duration is defined this will be ignored.
 			 * @param duration (int) scroll ticks.
 			 * @param startanimation (Object) The CSS that define de start layout of the animation.
@@ -236,11 +249,11 @@ jQuery.fn.unselectable = function () {
 			}
 
 			if (obj.startanimation && typeof obj.startanimation == "string") {
-				obj.startanimation = eval("(" + obj.startanimation + ")");
+				obj.startanimation = JSON.parse(obj.startanimation.replace(/'/g, "\""));
 			}
 
 			if (obj.endanimation && typeof obj.endanimation == "string") {
-				obj.endanimation = eval("(" + obj.endanimation + ")");
+				obj.endanimation = JSON.parse(obj.endanimation.replace(/'/g, "\""));
 			}
 
 
@@ -248,8 +261,6 @@ jQuery.fn.unselectable = function () {
 				el.scrollax = [];
 			el.scrollax.push(obj);
 			el.scrollax = $.unique(el.scrollax);
-
-			$.timeline.addPageMarker(obj.endScrollPos);
 
 			/*Check the window scroll height according to animations timelines ************************/
 			$.scrollax.maxScroll = $.scrollax.maxScroll < obj.endScrollPos + $(window).height() ? obj.endScrollPos + $(window).height() : $.scrollax.maxScroll;
@@ -266,42 +277,42 @@ jQuery.fn.unselectable = function () {
 		},
 
 		renderAnimation: function (pos) {
-			var el = this.get(0), x;
+			var el = this.get(0), prop;
 			for (var i in el.scrollax) {
 				var obj = el.scrollax[i];
 
 				if (!obj.startanimation) {
 					obj.startanimation = {};
-					for (x in obj.endanimation) {
-						if (x === "scale" || x === "rotate" || x === "skew")
+					for (prop in obj.endanimation) {
+						if (prop === "scale" || prop === "rotate" || prop === "skew")
 							continue;
 
-						if (x === "backgroundX") {
-							obj.startanimation[x] = parseFloat($(el).css("background-position").split(' ')[0].replace(/[^0-9-]/g, ''));
+						if (prop === "backgroundX") {
+							obj.startanimation[prop] = parseFloat($(el).css("background-position").split(' ')[0].replace(/[^0-9-]/g, ''));
 							continue;
 						}
-						if (x === "backgroundY") {
-							obj.startanimation[x] = parseFloat($(el).css("background-position").split(' ')[1].replace(/[^0-9-]/g, ''));
+						if (prop === "backgroundY") {
+							obj.startanimation[prop] = parseFloat($(el).css("background-position").split(' ')[1].replace(/[^0-9-]/g, ''));
 							continue;
 						}
-						obj.startanimation[x] = parseFloat($(el).css(x));
+						obj.startanimation[prop] = parseFloat($(el).css(prop));
 					}
 				}
 
 				if (!obj.endanimation) {
 					obj.endanimation = {};
-					for (x in obj.startanimation) {
-						if (x === "scale" || x === "rotate" || x === "skew")
+					for (prop in obj.startanimation) {
+						if (prop === "scale" || prop === "rotate" || prop === "skew")
 							continue;
-						if (x === "backgroundX") {
-							obj.endanimation[x] = parseFloat($(el).css("background-position").split(' ')[0].replace(/[^0-9-]/g, ''));
-							continue;
-						}
-						if (x === "backgroundY") {
-							obj.endanimation[x] = parseFloat($(el).css("background-position").split(' ')[1].replace(/[^0-9-]/g, ''));
+						if (prop === "backgroundX") {
+							obj.endanimation[prop] = parseFloat($(el).css("background-position").split(' ')[0].replace(/[^0-9-]/g, ''));
 							continue;
 						}
-						obj.endanimation[x] = parseFloat($(el).css(x));
+						if (prop === "backgroundY") {
+							obj.endanimation[prop] = parseFloat($(el).css("background-position").split(' ')[1].replace(/[^0-9-]/g, ''));
+							continue;
+						}
+						obj.endanimation[prop] = parseFloat($(el).css(prop));
 					}
 				}
 
@@ -330,28 +341,28 @@ jQuery.fn.unselectable = function () {
 			}
 			var css = {};
 
-			for (var i in obj) {
+			for (var prop in obj) {
 
 				if (!css[sfx + "transform"])
 					css[sfx + "transform"] = "";
 
-				if (i === "scale") {
-					css[sfx + "transform"] += " scale(" + obj[i] + ")";
-				} else if (i === "rotate") {
-					css[sfx + "transform"] += " rotate(" + obj[i] + "deg)";
-				} else if (i === "skew") {
-					css[sfx + "transform"] += " skew(" + obj[i] + ")";
-				} else if (i === "origin") {
-					css[sfx + "transform-origin"] = obj[i];
-				} else if (i === "backgroundX") {
-					css["background-position"] = obj[i] + "px ";
-				} else if (i === "backgroundY") {
+				if (prop === "scale") {
+					css[sfx + "transform"] += " scale(" + obj[prop] + ")";
+				} else if (prop === "rotate") {
+					css[sfx + "transform"] += " rotate(" + obj[prop] + "deg)";
+				} else if (prop === "skew") {
+					css[sfx + "transform"] += " skew(" + obj[prop] + ")";
+				} else if (prop === "origin") {
+					css[sfx + "transform-origin"] = obj[prop];
+				} else if (prop === "backgroundX") {
+					css["background-position"] = obj[prop] + "px ";
+				} else if (prop === "backgroundY") {
 					if (!css["background-position"])
 						css["background-position"] = "0px ";
 
-					css["background-position"] += obj[i] + "px";
+					css["background-position"] += obj[prop] + "px";
 				} else {
-					css[i] = obj[i];
+					css[prop] = obj[prop];
 				}
 			}
 			return css;
@@ -405,6 +416,19 @@ jQuery.fn.unselectable = function () {
 					step = $("<div/>").addClass("tracerStep small").css({position: "absolute", right: 0, top: i, borderBottom: "1px solid rgba(255,255,255,0.3)", paddingRight: 10}).html(" ");
 				}
 				$.timeline.scroller.append(step);
+			}
+		},
+
+		createIndex: function(){
+			var el = this;
+			for(var index in jQuery.timeline.pageMarkers){
+				var marker = jQuery.timeline.pageMarkers[index];
+				var indexLine = jQuery("<div/>").attr({id: "slide_"+marker}).addClass("pageMarker");
+				indexLine.get(0).marker = marker;
+				indexLine.on("click",function(){
+					jQuery.timeline.moveTo(this.marker);
+				});
+				el.append(indexLine);
 			}
 		}
 	};
@@ -477,7 +501,7 @@ jQuery.fn.unselectable = function () {
 				$.timeline.touch.x = 0;
 				$.timeline.touch.y = 0;
 
-				$(document).on(events.move, function (e) {
+				$("body").on(events.move, function (e) {
 					e.preventDefault();
 				});
 
@@ -498,7 +522,6 @@ jQuery.fn.unselectable = function () {
 
 						$.timeline.touch.moveX = e.clientX;
 						$.timeline.touch.moveY = e.clientY;
-
 						var d;
 						if ($.timeline.direction == "vertical") {
 							d = +($.timeline.touch.y - $.timeline.touch.moveY);
@@ -549,7 +572,7 @@ jQuery.fn.unselectable = function () {
 
 				$.timeline.delta = $.timeline.scroller.scrollTop() + d;
 				$.timeline.scroller.scrollTop($.timeline.delta);
-			}, 1);
+			},.1);
 
 		},
 
@@ -587,6 +610,7 @@ jQuery.fn.unselectable = function () {
 
 
 	$.fn.scrollax = $.scrollax.init;
+	$.fn.createPageMarkerIndex = $.scrollax.createIndex;
 	$.fn.renderAnimation = $.scrollax.renderAnimation;
 	$.fn.addScrollax = $.scrollax.addScrollax;
 
@@ -602,32 +626,10 @@ jQuery.fn.unselectable = function () {
 
 		sheets.each(function(){//loop through each stylesheet
 			cssPile+= $(this).text();
-
-			/*
-			 var csshref = (sheets[i].href) ? sheets[i].href : 'window.location.href';
-			 var baseURLarr = csshref.split('/');//split href at / to make array
-			 baseURLarr.pop();//remove file path from baseURL array
-			 var baseURL = baseURLarr.join('/');//create base url for the images in this sheet (css file's dir)
-			 if(baseURL!="") baseURL+='/'; //tack on a / if needed
-
-			 if(sheets[i].cssRules){//w3
-			 console.debug(sheets[i])
-
-			 var thisSheetRules = sheets[i].cssRules; //w3
-
-			 for(var j = 0; j<thisSheetRules.length; j++){
-
-			 if(thisSheetRules[j].cssText)
-			 cssPile+= thisSheetRules[j].cssText.replace("\"","").replace("\'","");
-			 }
-			 } else {
-			 cssPile+= document.styleSheets[i].cssText;
-			 }
-			 */
 		});
 
 		var imgUrls = cssPile.match(/[^\(]+\.(jpg|jpeg|png)/g);//reg ex to get a string of between a "(" and a ".filename"
-		imagesArray = imgUrls;//jQuery.makeArray(imgUrls);//create array from regex obj
+		imagesArray = jQuery.makeArray(imgUrls);//jQuery.makeArray(imgUrls);//create array from regex obj
 
 		/*Images in inline style*/
 		$('[style*="background"]').each(function () {
@@ -643,7 +645,8 @@ jQuery.fn.unselectable = function () {
 
 		/*Images */
 		$("img").each(function () {
-			imagesArray.push($(this).attr("src"));
+			var url = $(this).attr("src");
+			imagesArray.push(url);
 		});
 
 		imagesArray = jQuery.unique(imagesArray);
@@ -671,6 +674,57 @@ jQuery.fn.unselectable = function () {
 
 })(jQuery);
 
+
+
+jQuery.fn.addAnimation = function(from, to, delay, ease, time){
+
+	if(typeof from == undefined)
+		return;
+
+	if(typeof to == undefined)
+		return;
+
+	if (!ease)
+		ease = "cubic-bezier(0.65,0.03,0.36,0.72)";
+
+	if(!delay)
+		delay = 0;
+
+	if(!time)
+		time = 1500;
+
+	from = JSON.parse(from.replace(/'/g, "\""));
+	to =  JSON.parse(to.replace(/'/g, "\""));
+
+	if (jQuery.timeline.dir == "forward"){
+		jQuery(this).css(from).animate(to,time);
+	}else{
+		jQuery(this).css(to).animate(from,time);
+	}
+}
+
 Number.prototype.sign = function () {
 	return this > 0 ? 1 : -1;
+}
+
+if (!Array.prototype.indexOf){
+	Array.prototype.indexOf = function(elt)
+	{
+		var len = this.length >>> 0;
+
+		var from = Number(arguments[1]) || 0;
+		from = (from < 0)
+				? Math.ceil(from)
+				: Math.floor(from);
+		if (from < 0)
+			from += len;
+
+		for (; from < len; from++)
+		{
+			if (from in this &&
+					this[from] === elt)
+				return from;
+		}
+		return -1;
+	};
 }

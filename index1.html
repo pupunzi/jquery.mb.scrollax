@@ -16,7 +16,7 @@
   ~  http://www.opensource.org/licenses/mit-license.php
   ~  http://www.gnu.org/licenses/gpl.html
   ~
-  ~  last modified: 25/04/13 18.46
+  ~  last modified: 30/04/13 22.39
   ~  ******************************************************************************/
   -->
 
@@ -90,13 +90,44 @@
             line-height: 55px;
         }
 
+
+        #parallaxIndex{
+            position: absolute;
+            right: 50px;
+            top:20px;
+        }
+
+        #parallaxIndex div{
+            width: 30px;
+            height: 30px;
+            margin: 5px;
+            background: rgba(0,0,0,0.5) ;
+            display: inline-block;
+            position: relative;
+            border-radius: 15px;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        #parallaxIndex div.sel{
+            width: 30px;
+            height: 30px;
+            margin: 5px;
+            background: rgb(255, 192, 0);
+            display: inline-block;
+            position: relative;
+            border-radius: 15px;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
     </style>
     <script>
         $(function () {
 
             $.scrollax.init({
                 showSteps: true,
-                wheelSpeed:4,
+                wheelSpeed:10,
+                scrollStep:1,
                 preloadImages:true,
                 onBeforePreloading:function(){
                     $("body").css({opacity:0});
@@ -111,6 +142,11 @@
                 }
             });
 
+            jQuery.timeline.addPageMarker(0);
+            jQuery.timeline.addPageMarker(700);
+            jQuery.timeline.addPageMarker(1200);
+            jQuery.timeline.addPageMarker(2800);
+
             $("#el1").addScrollax({
                 id            : "first",
                 start         : 400,
@@ -118,6 +154,15 @@
                 startanimation: {'margin-top': 0},
                 endanimation  : {'margin-top': -1000}
             });
+
+            $("#el1Bgnd").addScrollax({
+                id            : "first",
+                start         : 400,
+                duration      : 1000,
+                startanimation: {'backgroundX': 0, 'backgroundY': 0},
+                endanimation  : {'backgroundX': 0, 'backgroundY': 2000}
+            });
+
 
             $("#el2").addScrollax({
                 id          : "first",
@@ -134,14 +179,6 @@
                 endanimation  : {'top': 1200}
             });
 
-            $("#el1Bgnd").addScrollax({
-                id            : "first",
-                start         : 400,
-                duration      : 1000,
-                startanimation: {'backgroundX': 0, 'backgroundY': 0},
-                endanimation  : {'backgroundX': 0, 'backgroundY': 2000}
-            });
-
             $.timeline.addEvent(900, function () {
                 if ($.timeline.dir == "forward") {
                     $("#scene2_img").attr({src: "img/scene_2.gif"});
@@ -149,6 +186,8 @@
                     $("#scene2_img").attr({src: "img/scene_2.jpg"});
                 }
             });
+
+            $("#parallaxIndex").createPageMarkerIndex();
         });
 
     </script>
@@ -160,6 +199,8 @@
 
 <!--<div id="console"></div>-->
 <div id="wrapper">
+    <div id="parallaxIndex"></div>
+
     <button onclick="$.scrollax.play(7)" style="position: absolute;z-index: 1000;top:10px; left:10px;">auto play
     </button>
 
