@@ -200,7 +200,7 @@ jQuery.fn.unselectable = function () {
 			}
 
 			el.isInit = true;
-			
+
 			/**
 			 *
 			 * @param start "auto" or (int) scroll position. "auto" will set the object just below the window height.
