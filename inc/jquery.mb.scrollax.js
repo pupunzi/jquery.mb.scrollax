@@ -14,7 +14,7 @@
  *  http://www.opensource.org/licenses/mit-license.php
  *  http://www.gnu.org/licenses/gpl.html
  *
- *  last modified: 01/05/13 18.12
+ *  last modified: 01/05/13 18.27
  *  *****************************************************************************
  */
 
@@ -612,7 +612,7 @@ jQuery.fn.unselectable = function () {
 				$.timeline.delta = $.timeline.scroller.scrollTop() + d;
 
 				$.timeline.scroller.scrollTop($.timeline.delta);
-			},1);
+			},$.browser.msie && $.browser.version < 9 ? 1 : 0);
 
 		},
 
@@ -622,9 +622,8 @@ jQuery.fn.unselectable = function () {
 		},
 
 		moveTo         : function (val) {
-			//var time = $.timeline.scroller.scrollTop() ? Math.abs($.timeline.scroller.scrollTop() * 2) : Math.abs(val * 5);
-			var time = 2000* Math.ceil(Math.abs((val-$.timeline.scroller.scrollTop())/1000));
-			$.timeline.scroller.animate({scrollTop: val}, time, "easeInOutQuint");//"easeInOutQuint"
+			var time = 1500* Math.ceil(Math.abs((val-$.timeline.scroller.scrollTop())/1000));
+			$.timeline.scroller.animate({scrollTop: val}, time, "easeOutQuart");//"easeInOutQuint"
 		},
 		refresh        : function (val) {
 			$.timeline.frames = val;
@@ -714,36 +713,6 @@ jQuery.fn.unselectable = function () {
 
 })(jQuery);
 
-
-/*
-
- jQuery.fn.addAnimation = function(from, to, delay, ease, time){
-
- if(typeof from == undefined)
- return;
-
- if(typeof to == undefined)
- return;
-
- if (!ease)
- ease = "cubic-bezier(0.65,0.03,0.36,0.72)";
-
- if(!delay)
- delay = 0;
-
- if(!time)
- time = 1500;
-
- from = JSON.parse(from.replace(/'/g, "\""));
- to =  JSON.parse(to.replace(/'/g, "\""));
-
- if (jQuery.timeline.dir == "forward"){
- jQuery(this).css(from).animate(to,time);
- }else{
- jQuery(this).css(to).animate(from,time);
- }
- }
- */
 
 Number.prototype.sign = function () {
 	return this > 0 ? 1 : -1;
