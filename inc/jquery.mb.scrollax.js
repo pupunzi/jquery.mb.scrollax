@@ -14,7 +14,7 @@
  *  http://www.opensource.org/licenses/mit-license.php
  *  http://www.gnu.org/licenses/gpl.html
  *
- *  last modified: 30/04/13 22.38
+ *  last modified: 01/05/13 17.53
  *  *****************************************************************************
  */
 
@@ -423,12 +423,44 @@ jQuery.fn.unselectable = function () {
 			var el = this;
 			for(var index in jQuery.timeline.pageMarkers){
 				var marker = jQuery.timeline.pageMarkers[index];
+				if (typeof marker == "function")
+					continue;
 				var indexLine = jQuery("<div/>").attr({id: "slide_"+marker}).addClass("pageMarker");
 				indexLine.get(0).marker = marker;
 				indexLine.on("click",function(){
 					jQuery.timeline.moveTo(this.marker);
 				});
 				el.append(indexLine);
+
+				if(marker == $.timeline.pos)
+					indexLine.addClass("sel");
+			}
+
+		},
+		addAnimation: function(from, to, delay, ease, time){
+
+			if(typeof from == undefined)
+				return;
+
+			if(typeof to == undefined)
+				return;
+
+			if (!ease)
+				ease = "cubic-bezier(0.65,0.03,0.36,0.72)";
+
+			if(!delay)
+				delay = 0;
+
+			if(!time)
+				time = 1500;
+
+			from = JSON.parse(from.replace(/'/g, "\""));
+			to =  JSON.parse(to.replace(/'/g, "\""));
+
+			if (jQuery.timeline.dir == "forward"){
+				jQuery(this).css(from).animate(to,time);
+			}else{
+				jQuery(this).css(to).animate(from,time);
 			}
 		}
 	};
@@ -440,7 +472,7 @@ jQuery.fn.unselectable = function () {
 		buildScroller: function () {
 			$(".scrollaxerCont").remove();
 			var scroller = $("<div/>").addClass("scrollaxer").css({width: 20, height: $.timeline.frames + $(window).height()});
-			var scrollerCont = $("<div/>").addClass("scrollaxerCont").css({width: 50, position: "fixed", top: 0, right: 0, overflowX: "hidden", overflowY: "visible", height: "100%", opacity: .5, zIndex: 9999});
+			var scrollerCont = $("<div/>").addClass("scrollaxerCont").css({width: 50, position: "fixed", top: 0, right: 0, overflowX: "hidden", overflowY: $.browser.msie && $.browser.version<9 ? "scroll" : "visible", height: "100%", opacity: .5, zIndex: 9999});
 			scrollerCont.append(scroller);
 			scrollerCont.unselectable();
 			scrollerCont.on("mousewheel", function (event) {
@@ -488,12 +520,15 @@ jQuery.fn.unselectable = function () {
 			if (!isDevice) {
 				$("body").on("mousewheel", function (event, delta, deltaX, deltaY) {
 
-					event.preventDefault();
 					if ($.scrollax.autoplay) {
 						clearInterval($.scrollax.autoplay);
 						$.scrollax.autoplay = false;
 					}
+
+
 					$.timeline.moveBy(-deltaY);
+					event.preventDefault();
+
 				});
 
 			} else {
@@ -568,11 +603,14 @@ jQuery.fn.unselectable = function () {
 					if (reallyStop)
 						$.timeline.stopMoveBy();
 				}
+
+
 				var d = $.timeline.scrollStep * delta.sign();
 
 				$.timeline.delta = $.timeline.scroller.scrollTop() + d;
+
 				$.timeline.scroller.scrollTop($.timeline.delta);
-			},.1);
+			},1);
 
 		},
 
@@ -608,9 +646,9 @@ jQuery.fn.unselectable = function () {
 		}
 	};
 
-
 	$.fn.scrollax = $.scrollax.init;
 	$.fn.createPageMarkerIndex = $.scrollax.createIndex;
+	$.fn.addAnimation = $.scrollax.addAnimation;
 	$.fn.renderAnimation = $.scrollax.renderAnimation;
 	$.fn.addScrollax = $.scrollax.addScrollax;
 
@@ -675,33 +713,35 @@ jQuery.fn.unselectable = function () {
 })(jQuery);
 
 
+/*
 
-jQuery.fn.addAnimation = function(from, to, delay, ease, time){
+ jQuery.fn.addAnimation = function(from, to, delay, ease, time){
 
-	if(typeof from == undefined)
-		return;
+ if(typeof from == undefined)
+ return;
 
-	if(typeof to == undefined)
-		return;
+ if(typeof to == undefined)
+ return;
 
-	if (!ease)
-		ease = "cubic-bezier(0.65,0.03,0.36,0.72)";
+ if (!ease)
+ ease = "cubic-bezier(0.65,0.03,0.36,0.72)";
 
-	if(!delay)
-		delay = 0;
+ if(!delay)
+ delay = 0;
 
-	if(!time)
-		time = 1500;
+ if(!time)
+ time = 1500;
 
-	from = JSON.parse(from.replace(/'/g, "\""));
-	to =  JSON.parse(to.replace(/'/g, "\""));
+ from = JSON.parse(from.replace(/'/g, "\""));
+ to =  JSON.parse(to.replace(/'/g, "\""));
 
-	if (jQuery.timeline.dir == "forward"){
-		jQuery(this).css(from).animate(to,time);
-	}else{
-		jQuery(this).css(to).animate(from,time);
-	}
-}
+ if (jQuery.timeline.dir == "forward"){
+ jQuery(this).css(from).animate(to,time);
+ }else{
+ jQuery(this).css(to).animate(from,time);
+ }
+ }
+ */
 
 Number.prototype.sign = function () {
 	return this > 0 ? 1 : -1;
