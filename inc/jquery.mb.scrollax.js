@@ -14,7 +14,7 @@
  *  http://www.opensource.org/licenses/mit-license.php
  *  http://www.gnu.org/licenses/gpl.html
  *
- *  last modified: 01/05/13 17.53
+ *  last modified: 01/05/13 18.12
  *  *****************************************************************************
  */
 
@@ -458,7 +458,9 @@ jQuery.fn.unselectable = function () {
 			to =  JSON.parse(to.replace(/'/g, "\""));
 
 			if (jQuery.timeline.dir == "forward"){
-				jQuery(this).css(from).animate(to,time);
+				setTimeout(function(){
+					jQuery(this).css(from).animate(to,time);
+				},delay)
 			}else{
 				jQuery(this).css(to).animate(from,time);
 			}
@@ -620,9 +622,9 @@ jQuery.fn.unselectable = function () {
 		},
 
 		moveTo         : function (val) {
-			var time = $.timeline.scroller.scrollTop() ? Math.abs($.timeline.scroller.scrollTop() * 2) : Math.abs(val * 5);
-			var time = 2000;
-			$.timeline.scroller.animate({scrollTop: val}, time, "linear");//"easeInOutQuint"
+			//var time = $.timeline.scroller.scrollTop() ? Math.abs($.timeline.scroller.scrollTop() * 2) : Math.abs(val * 5);
+			var time = 2000* Math.ceil(Math.abs((val-$.timeline.scroller.scrollTop())/1000));
+			$.timeline.scroller.animate({scrollTop: val}, time, "easeInOutQuint");//"easeInOutQuint"
 		},
 		refresh        : function (val) {
 			$.timeline.frames = val;
