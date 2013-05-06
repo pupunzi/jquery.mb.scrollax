@@ -15,7 +15,7 @@
  *  http://www.opensource.org/licenses/mit-license.php
  *  http://www.gnu.org/licenses/gpl.html
  *
- *  last modified: 29/04/13 22.10
+ *  last modified: 02/05/13 22.21
  *  *****************************************************************************
  */
 
@@ -54,7 +54,7 @@ $.enterFrame = {
    *
    * @param eventname
    * @param start
-   * @param frequency in milliseconds 1000 = 1 sec. This may be delayed by requestAnimationFrame DOm resync
+   * @param frequency in milliseconds 1000 = 1 sec. This may be delayed by requestAnimationFrame Dom resync
    * @param mainFunction
    * @param data
    * @constructor
