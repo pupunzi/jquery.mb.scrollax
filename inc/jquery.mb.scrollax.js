@@ -18,6 +18,10 @@
  *  *****************************************************************************
  */
 
+
+
+
+
 /*Browser detection patch*/
 (function () {
 	if (!(8 > jQuery.fn.jquery.split(".")[1])) {
@@ -51,6 +55,8 @@
 var ua = navigator.userAgent.toLowerCase();
 var isAndroid = /android/.test(ua);
 var isiOs = /(iphone|ipod|ipad)/.test(ua);
+
+var acceptedDevices = /(ipad)/.test(ua);
 var isOpera = /opera/.test(ua);
 
 /*events mapping*/
@@ -103,8 +109,6 @@ jQuery.fn.unselectable = function () {
 	});
 };
 
-//jQuery.getScript("inc/fastfix.js");
-
 (function ($) {
 	$.scrollax = {
 		name    : "jquery.mb.scrollax",
@@ -113,17 +117,42 @@ jQuery.fn.unselectable = function () {
 		defaults: {
 			elements          : "[data-start]",
 			wheelSpeed        : 10,
-			scrollStep        : 5,
+			//scrollStep should not be changed as this can compromize performance
+			scrollStep        : 3,
 			direction         : "vertical",
 			showSteps         : true,
 			preloadImages     : true,
-			onBeforePreloading: function () { /*$("body").css({visibility:"hidden", opacity:0}); console.debug("start loading")*/},
-			onPreloading      : function (counter, tot) { /*console.debug(counter, "/", tot)*/},
-			onEndPreloading   : function () {/*$("body").css({visibility:"visible"}).fadeTo(1000,1); console.debug("images loaded")*/}
+			onBeforePreloading: function () {},
+			onPreloading      : function (counter, tot) {},
+			onEndPreloading   : function () {}
 		},
 
 		init: function (options) {
 			$.extend($.scrollax.defaults, options);
+
+			var lastTime = 0;
+			var vendors = ['ms', 'moz', 'webkit', 'o'];
+			for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+				window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+				window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame']
+						|| window[vendors[x]+'CancelRequestAnimationFrame'];
+			}
+
+			if (!window.requestAnimationFrame)
+				window.requestAnimationFrame = function(callback, element) {
+					var currTime = new Date().getTime();
+					var timeToCall = Math.max(0, 1000 / 60 - (currTime - lastTime));
+					var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+							timeToCall);
+					lastTime = currTime + timeToCall;
+					return id;
+				};
+
+			if (!window.cancelAnimationFrame)
+				window.cancelAnimationFrame = function(id) {
+					clearTimeout(id);
+				};
+
 
 			if ($.scrollax.defaults.preloadImages) {
 				$.scrollax.defaults.onBeforePreloading();
@@ -167,9 +196,20 @@ jQuery.fn.unselectable = function () {
 					 event.pageMarker = $.timeline.pos;
 					 $(document).trigger(event);
 					 */
+
 					$.timeline.stopMoveBy();
+
+
+					if($.timeline.animationIsRunning )
+						$("body").on("mousewheel.moving", function(){$.timeline.stopMoveBy()});
+
+
 					$(".pageMarker").removeClass("sel");
 					$("#slide_"+$.timeline.pos).addClass("sel");
+
+					if($(".pageMarker.clicked").length && $(".pageMarker.clicked").get(0).marker == $.timeline.pos)
+						$(".pageMarker.clicked").removeClass("clicked");
+
 				}
 
 			});
@@ -223,6 +263,7 @@ jQuery.fn.unselectable = function () {
 			if (firstAnim.startanimation) {
 				css = $.scrollax.generateCss(firstAnim.startanimation);
 				$el.css(css);
+
 			}
 		},
 
@@ -317,14 +358,17 @@ jQuery.fn.unselectable = function () {
 				}
 
 				if (pos >= obj.startScrollPos && pos <= obj.endScrollPos) {
+
+
 					var animVal = $.scrollax.setPropVal(obj, pos);
 					var css = $.scrollax.generateCss(animVal);
 					$(el).css(css);
 
 					if (el.customEvent)
 						el.customEvent(pos, obj);
-
 				}
+
+
 			}
 		},
 
@@ -429,6 +473,7 @@ jQuery.fn.unselectable = function () {
 				indexLine.get(0).marker = marker;
 				indexLine.on("click",function(){
 					jQuery.timeline.moveTo(this.marker);
+					$(this).addClass("clicked");
 				});
 				el.append(indexLine);
 
@@ -438,6 +483,8 @@ jQuery.fn.unselectable = function () {
 
 		},
 		addAnimation: function(from, to, delay, ease, time){
+
+			var el = this;
 
 			if(typeof from == undefined)
 				return;
@@ -457,12 +504,19 @@ jQuery.fn.unselectable = function () {
 			from = JSON.parse(from.replace(/'/g, "\""));
 			to =  JSON.parse(to.replace(/'/g, "\""));
 
-			if (jQuery.timeline.dir == "forward"){
+
+			if ($.timeline.dir == "forward"){
+				$.timeline.animationIsRunning = true;
 				setTimeout(function(){
-					jQuery(this).css(from).animate(to,time);
+					el.css(from).animate(to,time,function(){
+						setTimeout(function(){
+							$.timeline.animationIsRunning = false;
+							$("body").off("mousewheel.moving");
+						},1500)
+					});
 				},delay)
 			}else{
-				jQuery(this).css(to).animate(from,time);
+				el.css(to).animate(from,time,function(){});
 			}
 		}
 	};
@@ -527,13 +581,13 @@ jQuery.fn.unselectable = function () {
 						$.scrollax.autoplay = false;
 					}
 
-
 					$.timeline.moveBy(-deltaY);
 					event.preventDefault();
 
 				});
 
 			} else {
+
 				$.timeline.touch = {};
 				$.timeline.touch.x = 0;
 				$.timeline.touch.y = 0;
@@ -584,40 +638,54 @@ jQuery.fn.unselectable = function () {
 			if (($.timeline.isMoving && delta.sign() == $.timeline.runningDeltaSign) || !delta)
 				return;
 
-			clearInterval($.timeline.step);
+			//clearInterval($.timeline.step);
+
+			if($.timeline.step)
+				cancelAnimationFrame($.timeline.step);
 
 			$.timeline.isMoving = true;
 			$.timeline.runningDeltaSign = delta.sign();
 
 			var counter = 0;
-			$.timeline.step = setInterval(function () {
+
+
+			function moveSteps () {
 				counter++;
 				var reallyStop = true;
 
 				if (counter > ($.timeline.wheelSpeed / $.timeline.scrollStep)) {
 					for (var pmi in $.timeline.pageMarkers) {
 						var pm = $.timeline.pageMarkers[pmi];
-						if (pm > $.timeline.pos && delta.sign() == 1 && pm < ($.timeline.pos + ($.timeline.wheelSpeed * 2) + 1) ) { //&& !isDevice
+						if (
+								(pm > $.timeline.pos && delta.sign() == 1 && pm < ($.timeline.pos + ($.timeline.wheelSpeed * 2) + 1)) ||
+										(pm < $.timeline.pos && delta.sign() == -1 && pm > ($.timeline.pos - ($.timeline.wheelSpeed * 2) -1 ))
+								) {
 							reallyStop = false;
 						}
-
 					}
 					if (reallyStop)
 						$.timeline.stopMoveBy();
 				}
 
-
 				var d = $.timeline.scrollStep * delta.sign();
 
 				$.timeline.delta = $.timeline.scroller.scrollTop() + d;
-
 				$.timeline.scroller.scrollTop($.timeline.delta);
-			},$.browser.msie && $.browser.version < 9 ? 1 : 0);
+
+				$.timeline.step = requestAnimationFrame(moveSteps)
+			}
+
+			$.timeline.step = requestAnimationFrame(moveSteps);
 
 		},
 
 		stopMoveBy: function () {
-			clearInterval($.timeline.step);
+
+			if($.timeline.step)
+				cancelAnimationFrame($.timeline.step);
+
+
+			//clearInterval($.timeline.step);
 			$.timeline.isMoving = false;
 		},
 
@@ -659,6 +727,11 @@ jQuery.fn.unselectable = function () {
 
 		var imagesArray = [];
 
+		if($.browser.msie && $.browser.version<9){
+			setTimeout(callback,5000);
+			return;
+		}
+
 		/*Images in stylesheets*/
 		var sheets = $("style");//array of stylesheets
 		var cssPile = '';//create large string of all css rules in sheet
@@ -694,8 +767,8 @@ jQuery.fn.unselectable = function () {
 			var img = $("<img/>");
 			img.attr("src", imagesArray[x]).on("load",function () {
 				counter++;
-				$.scrollax.defaults.onPreloading(counter, imagesArray.length);
 
+				$.scrollax.defaults.onPreloading(counter, imagesArray.length);
 				if (counter == imagesArray.length && typeof callback == "function")
 					callback();
 			}).on("error", function(){
@@ -707,8 +780,8 @@ jQuery.fn.unselectable = function () {
 					})
 
 		}
-		return imagesArray;
 
+		return imagesArray;
 	}
 
 })(jQuery);
@@ -716,6 +789,10 @@ jQuery.fn.unselectable = function () {
 
 Number.prototype.sign = function () {
 	return this > 0 ? 1 : -1;
+}
+
+String.prototype.pxToN = function(){
+	return parseInt(this.replace(/px/i,""));
 }
 
 if (!Array.prototype.indexOf){
