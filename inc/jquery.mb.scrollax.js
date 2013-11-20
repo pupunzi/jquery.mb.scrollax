@@ -14,7 +14,7 @@
  *  http://www.opensource.org/licenses/mit-license.php
  *  http://www.gnu.org/licenses/gpl.html
  *
- *  last modified: 02/05/13 23.26
+ *  last modified: 20/11/13 21.50
  *  *****************************************************************************
  */
 
@@ -23,30 +23,26 @@
 
 
 /*Browser detection patch*/
-(function () {
-	if (!(8 > jQuery.fn.jquery.split(".")[1])) {
-		jQuery.browser = {};
-		jQuery.browser.mozilla = !1;
-		jQuery.browser.webkit = !1;
-		jQuery.browser.opera = !1;
-		jQuery.browser.msie = !1;
-		var a = navigator.userAgent;
-		jQuery.browser.name = navigator.appName;
-		jQuery.browser.fullVersion = "" + parseFloat(navigator.appVersion);
-		jQuery.browser.majorVersion = parseInt(navigator.appVersion, 10);
-		var c, b;
-		if (-1 != (b = a.indexOf("Opera"))) {
-			if (jQuery.browser.opera = !0, jQuery.browser.name = "Opera", jQuery.browser.fullVersion = a.substring(b + 6), -1 != (b = a.indexOf("Version")))jQuery.browser.fullVersion = a.substring(b + 8)
-		} else if (-1 != (b = a.indexOf("MSIE")))jQuery.browser.msie = !0, jQuery.browser.name = "Microsoft Internet Explorer", jQuery.browser.fullVersion = a.substring(b + 5); else if (-1 != (b = a.indexOf("Chrome")))jQuery.browser.webkit = !0, jQuery.browser.name = "Chrome", jQuery.browser.fullVersion = a.substring(b + 7); else if (-1 != (b = a.indexOf("Safari"))) {
-			if (jQuery.browser.webkit = !0, jQuery.browser.name = "Safari", jQuery.browser.fullVersion = a.substring(b + 7), -1 != (b = a.indexOf("Version")))jQuery.browser.fullVersion = a.substring(b + 8)
-		} else if (-1 != (b = a.indexOf("Firefox")))jQuery.browser.mozilla = !0, jQuery.browser.name = "Firefox", jQuery.browser.fullVersion = a.substring(b + 8); else if ((c = a.lastIndexOf(" ") + 1) < (b = a.lastIndexOf("/")))jQuery.browser.name = a.substring(c, b), jQuery.browser.fullVersion = a.substring(b + 1), jQuery.browser.name.toLowerCase() == jQuery.browser.name.toUpperCase() && (jQuery.browser.name = navigator.appName);
-		if (-1 != (a = jQuery.browser.fullVersion.indexOf(";")))jQuery.browser.fullVersion = jQuery.browser.fullVersion.substring(0, a);
-		if (-1 != (a = jQuery.browser.fullVersion.indexOf(" ")))jQuery.browser.fullVersion = jQuery.browser.fullVersion.substring(0, a);
-		jQuery.browser.majorVersion = parseInt("" + jQuery.browser.fullVersion, 10);
-		isNaN(jQuery.browser.majorVersion) && (jQuery.browser.fullVersion = "" + parseFloat(navigator.appVersion), jQuery.browser.majorVersion = parseInt(navigator.appVersion, 10));
-		jQuery.browser.version = jQuery.browser.majorVersion
-	}
-})(jQuery);
+if (!jQuery.browser) {
+	jQuery.browser = {};
+	jQuery.browser.mozilla = !1;
+	jQuery.browser.webkit = !1;
+	jQuery.browser.opera = !1;
+	jQuery.browser.msie = !1;
+	var nAgt = navigator.userAgent;
+	jQuery.browser.ua = nAgt;
+	jQuery.browser.name = navigator.appName;
+	jQuery.browser.fullVersion = "" + parseFloat(navigator.appVersion);
+	jQuery.browser.majorVersion = parseInt(navigator.appVersion, 10);
+	var nameOffset, verOffset, ix;
+	-1 != (verOffset = nAgt.indexOf("Opera")) ? (jQuery.browser.opera = !0, jQuery.browser.name = "Opera", jQuery.browser.fullVersion = nAgt.substring(verOffset + 6), -1 != (verOffset = nAgt.indexOf("Version")) && (jQuery.browser.fullVersion = nAgt.substring(verOffset + 8))) : -1 != (verOffset = nAgt.indexOf("MSIE")) || -1 != nAgt.indexOf("Trident") ? (jQuery.browser.msie = !0, jQuery.browser.name = "Microsoft Internet Explorer", jQuery.browser.fullVersion = nAgt.substring(verOffset + 5), -1 != nAgt.indexOf("Trident") && (jQuery.browser.fullVersion = nAgt.substring(nAgt.indexOf("rv:") + 3))) : -1 != (verOffset = nAgt.indexOf("Chrome")) ? (jQuery.browser.webkit = !0, jQuery.browser.name = "Chrome", jQuery.browser.fullVersion = nAgt.substring(verOffset + 7)) : -1 != (verOffset = nAgt.indexOf("Safari")) ? (jQuery.browser.webkit = !0, jQuery.browser.name = "Safari", jQuery.browser.fullVersion = nAgt.substring(verOffset + 7), -1 != (verOffset = nAgt.indexOf("Version")) && (jQuery.browser.fullVersion = nAgt.substring(verOffset + 8))) : -1 != (verOffset = nAgt.indexOf("AppleWebkit")) ? (jQuery.browser.webkit = !0, jQuery.browser.name = "Safari", jQuery.browser.fullVersion = nAgt.substring(verOffset + 7), -1 != (verOffset = nAgt.indexOf("Version")) && (jQuery.browser.fullVersion = nAgt.substring(verOffset + 8))) : -1 != (verOffset = nAgt.indexOf("Firefox")) ? (jQuery.browser.mozilla = !0, jQuery.browser.name = "Firefox", jQuery.browser.fullVersion = nAgt.substring(verOffset + 8)) : (nameOffset = nAgt.lastIndexOf(" ") + 1) < (verOffset = nAgt.lastIndexOf("/")) && (jQuery.browser.name = nAgt.substring(nameOffset, verOffset), jQuery.browser.fullVersion = nAgt.substring(verOffset + 1), jQuery.browser.name.toLowerCase() == jQuery.browser.name.toUpperCase() && (jQuery.browser.name = navigator.appName));
+	-1 != (ix = jQuery.browser.fullVersion.indexOf(";")) && (jQuery.browser.fullVersion = jQuery.browser.fullVersion.substring(0, ix));
+	-1 != (ix = jQuery.browser.fullVersion.indexOf(" ")) && (jQuery.browser.fullVersion = jQuery.browser.fullVersion.substring(0, ix));
+	jQuery.browser.majorVersion = parseInt("" + jQuery.browser.fullVersion, 10);
+	isNaN(jQuery.browser.majorVersion) && (jQuery.browser.fullVersion = "" + parseFloat(navigator.appVersion), jQuery.browser.majorVersion = parseInt(navigator.appVersion, 10));
+	jQuery.browser.version = jQuery.browser.majorVersion
+};
+
 
 /*******************************************************************************
  * jQuery.mb.components: jquery.mb.CSSAnimate
@@ -113,15 +109,17 @@ jQuery.fn.unselectable = function () {
 	$.scrollax = {
 		name    : "jquery.mb.scrollax",
 		author  : "Matteo Bicocchi (pupunzi)",
-		version : "1.1",
+		version : "1.5",
 		defaults: {
 			elements          : "[data-start]",
 			wheelSpeed        : 10,
 			//scrollStep should not be changed as this can compromize performance
-			scrollStep        : 3,
+			scrollStep        : 2,
 			direction         : "vertical",
 			showSteps         : true,
 			preloadImages     : true,
+			activateKeyboard  :true,
+			stopOnlyAtMarkers :false,
 			onBeforePreloading: function () {},
 			onPreloading      : function (counter, tot) {},
 			onEndPreloading   : function () {}
@@ -129,30 +127,6 @@ jQuery.fn.unselectable = function () {
 
 		init: function (options) {
 			$.extend($.scrollax.defaults, options);
-
-			var lastTime = 0;
-			var vendors = ['ms', 'moz', 'webkit', 'o'];
-			for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-				window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-				window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame']
-						|| window[vendors[x]+'CancelRequestAnimationFrame'];
-			}
-
-			if (!window.requestAnimationFrame)
-				window.requestAnimationFrame = function(callback, element) {
-					var currTime = new Date().getTime();
-					var timeToCall = Math.max(0, 1000 / 60 - (currTime - lastTime));
-					var id = window.setTimeout(function() { callback(currTime + timeToCall); },
-							timeToCall);
-					lastTime = currTime + timeToCall;
-					return id;
-				};
-
-			if (!window.cancelAnimationFrame)
-				window.cancelAnimationFrame = function(id) {
-					clearTimeout(id);
-				};
-
 
 			if ($.scrollax.defaults.preloadImages) {
 				$.scrollax.defaults.onBeforePreloading();
@@ -166,6 +140,7 @@ jQuery.fn.unselectable = function () {
 			$.timeline.scrollStep = $.scrollax.defaults.scrollStep *  10;
 //			direction works only for touch devices.
 			$.timeline.direction = $.scrollax.defaults.direction;
+			$.timeline.activateKeyboard = $.scrollax.defaults.activateKeyboard;
 
 			$.scrollax.els = $($.scrollax.defaults.elements);
 			$.scrollax.scrolled = 0;
@@ -191,17 +166,17 @@ jQuery.fn.unselectable = function () {
 				var isPageMarker = $.timeline.pageMarkers.indexOf($.timeline.pos) >= 0;
 
 				if (isPageMarker){
-					/*
 					 var event = $.Event("pageMarker");
 					 event.pageMarker = $.timeline.pos;
 					 $(document).trigger(event);
-					 */
 
 					$.timeline.stopMoveBy();
 
-
 					if($.timeline.animationIsRunning )
-						$("body").on("mousewheel.moving", function(){$.timeline.stopMoveBy()});
+						$("body").off("mousewheel.moving").on("mousewheel.moving", function(){
+							$.timeline.stopMoveBy();
+							return false;
+						});
 
 
 					$(".pageMarker").removeClass("sel");
@@ -238,7 +213,7 @@ jQuery.fn.unselectable = function () {
 					obj[i] = $el.data()[i];
 				}
 			}
-
+			obj.id = el.id;
 			el.isInit = true;
 
 			/**
@@ -263,7 +238,6 @@ jQuery.fn.unselectable = function () {
 			if (firstAnim.startanimation) {
 				css = $.scrollax.generateCss(firstAnim.startanimation);
 				$el.css(css);
-
 			}
 		},
 
@@ -300,8 +274,6 @@ jQuery.fn.unselectable = function () {
 
 			if (!el.scrollax)
 				el.scrollax = [];
-			el.scrollax.push(obj);
-			el.scrollax = $.unique(el.scrollax);
 
 			/*Check the window scroll height according to animations timelines ************************/
 			$.scrollax.maxScroll = $.scrollax.maxScroll < obj.endScrollPos + $(window).height() ? obj.endScrollPos + $(window).height() : $.scrollax.maxScroll;
@@ -312,6 +284,9 @@ jQuery.fn.unselectable = function () {
 
 			if (obj.customEvent)
 				el.customEvent = obj.customEvent;
+
+			el.scrollax.push(obj);
+			el.scrollax = $.unique(el.scrollax);
 
 			return this;
 
@@ -367,7 +342,6 @@ jQuery.fn.unselectable = function () {
 					if (el.customEvent)
 						el.customEvent(pos, obj);
 				}
-
 
 			}
 		},
@@ -506,15 +480,18 @@ jQuery.fn.unselectable = function () {
 
 
 			if ($.timeline.dir == "forward"){
-				$.timeline.animationIsRunning = true;
 				setTimeout(function(){
-					el.css(from).animate(to,time,function(){
-						setTimeout(function(){
-							$.timeline.animationIsRunning = false;
-							$("body").off("mousewheel.moving");
-						},1500)
-					});
-				},delay)
+
+					$.timeline.animationIsRunning = true;
+					clearTimeout($.timeline.donotmove);
+					$.timeline.donotmove = setTimeout(function(){
+						$.timeline.animationIsRunning = false;
+						$("body").off("mousewheel.moving");
+					},1500);
+
+					el.css(from).animate(to,time,function(){});
+				},delay);
+
 			}else{
 				el.css(to).animate(from,time,function(){});
 			}
@@ -524,6 +501,7 @@ jQuery.fn.unselectable = function () {
 	$.timeline = {
 		frames       : 4000,
 		pos          : 0,
+		activateKeyboard : true,
 		pageMarkers  : [],
 		buildScroller: function () {
 			$(".scrollaxerCont").remove();
@@ -586,6 +564,10 @@ jQuery.fn.unselectable = function () {
 
 				});
 
+				if($.timeline.activateKeyboard)
+					$.timeline.keyboard();
+
+
 			} else {
 
 				$.timeline.touch = {};
@@ -629,6 +611,24 @@ jQuery.fn.unselectable = function () {
 			}
 		},
 
+		keyboard:function(){
+			$(document).on("keydown.scrollax",function(e){
+
+				switch(e.keyCode){
+					case 38:
+						$.timeline.moveBy(-1);
+						e.preventDefault();
+						break;
+					case 40:
+						$.timeline.moveBy(1);
+						e.preventDefault();
+						break;
+					default:
+						break;
+				}
+			})
+		},
+
 		addPageMarker: function (step) {
 			$.timeline.pageMarkers.push(step);
 		},
@@ -641,13 +641,13 @@ jQuery.fn.unselectable = function () {
 			//clearInterval($.timeline.step);
 
 			if($.timeline.step)
-				cancelAnimationFrame($.timeline.step);
+				clearInterval($.timeline.step)
+			//cancelAnimationFrame($.timeline.step);
 
 			$.timeline.isMoving = true;
 			$.timeline.runningDeltaSign = delta.sign();
 
 			var counter = 0;
-
 
 			function moveSteps () {
 				counter++;
@@ -656,6 +656,7 @@ jQuery.fn.unselectable = function () {
 				if (counter > ($.timeline.wheelSpeed / $.timeline.scrollStep)) {
 					for (var pmi in $.timeline.pageMarkers) {
 						var pm = $.timeline.pageMarkers[pmi];
+
 						if (
 								(pm > $.timeline.pos && delta.sign() == 1 && pm < ($.timeline.pos + ($.timeline.wheelSpeed * 2) + 1)) ||
 										(pm < $.timeline.pos && delta.sign() == -1 && pm > ($.timeline.pos - ($.timeline.wheelSpeed * 2) -1 ))
@@ -663,7 +664,8 @@ jQuery.fn.unselectable = function () {
 							reallyStop = false;
 						}
 					}
-					if (reallyStop)
+
+					if (reallyStop && !$.scrollax.defaults.stopOnlyAtMarkers)
 						$.timeline.stopMoveBy();
 				}
 
@@ -672,17 +674,19 @@ jQuery.fn.unselectable = function () {
 				$.timeline.delta = $.timeline.scroller.scrollTop() + d;
 				$.timeline.scroller.scrollTop($.timeline.delta);
 
-				$.timeline.step = requestAnimationFrame(moveSteps)
+				//$.timeline.step = requestAnimationFrame(moveSteps)
 			}
 
-			$.timeline.step = requestAnimationFrame(moveSteps);
+			$.timeline.step = setInterval(moveSteps,1)
+			//$.timeline.step = requestAnimationFrame(moveSteps);
 
 		},
 
 		stopMoveBy: function () {
 
 			if($.timeline.step)
-				cancelAnimationFrame($.timeline.step);
+				clearInterval($.timeline.step)
+			//cancelAnimationFrame($.timeline.step);
 
 
 			//clearInterval($.timeline.step);
@@ -720,6 +724,8 @@ jQuery.fn.unselectable = function () {
 	$.fn.addAnimation = $.scrollax.addAnimation;
 	$.fn.renderAnimation = $.scrollax.renderAnimation;
 	$.fn.addScrollax = $.scrollax.addScrollax;
+
+
 
 	jQuery.preloadImages = function (callback) {
 
@@ -784,44 +790,9 @@ jQuery.fn.unselectable = function () {
 
 })(jQuery);
 
-// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
-// http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
-
-// requestAnimationFrame polyfill by Erik Möller
-// fixes from Paul Irish and Tino Zijdel
-
-(function() {
-	var lastTime = 0;
-	var vendors = ['ms', 'moz', 'webkit', 'o'];
-	for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-		window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-		window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame']
-				|| window[vendors[x]+'CancelRequestAnimationFrame'];
-	}
-
-	if (!window.requestAnimationFrame)
-		window.requestAnimationFrame = function(callback, element) {
-			var currTime = new Date().getTime();
-			var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-			var id = window.setTimeout(function() { callback(currTime + timeToCall); },
-					timeToCall);
-			lastTime = currTime + timeToCall;
-			return id;
-		};
-
-	if (!window.cancelAnimationFrame)
-		window.cancelAnimationFrame = function(id) {
-			clearTimeout(id);
-		};
-}());
-
 
 Number.prototype.sign = function () {
 	return this > 0 ? 1 : -1;
-}
-
-String.prototype.pxToN = function(){
-	return parseInt(this.replace(/px/i,""));
 }
 
 if (!Array.prototype.indexOf){
