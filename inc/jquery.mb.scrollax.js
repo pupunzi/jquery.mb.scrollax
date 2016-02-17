@@ -19,30 +19,11 @@
  */
 
 /*Browser detection patch*/
-if (!jQuery.browser) {
-	jQuery.browser = {}, jQuery.browser.mozilla = !1, jQuery.browser.webkit = !1, jQuery.browser.opera = !1, jQuery.browser.safari = !1, jQuery.browser.chrome = !1, jQuery.browser.msie = !1;
-	var nAgt = navigator.userAgent;
-	jQuery.browser.ua = nAgt, jQuery.browser.name = navigator.appName, jQuery.browser.fullVersion = "" + parseFloat(navigator.appVersion), jQuery.browser.majorVersion = parseInt(navigator.appVersion, 10);
-	var nameOffset, verOffset, ix;
-	if (-1 != (verOffset = nAgt.indexOf("Opera")))jQuery.browser.opera = !0, jQuery.browser.name = "Opera", jQuery.browser.fullVersion = nAgt.substring(verOffset + 6), -1 != (verOffset = nAgt.indexOf("Version")) && (jQuery.browser.fullVersion = nAgt.substring(verOffset + 8)); else if (-1 != (verOffset = nAgt.indexOf("MSIE")))jQuery.browser.msie = !0, jQuery.browser.name = "Microsoft Internet Explorer", jQuery.browser.fullVersion = nAgt.substring(verOffset + 5); else if (-1 != nAgt.indexOf("Trident")) {
-		jQuery.browser.msie = !0, jQuery.browser.name = "Microsoft Internet Explorer";
-		var start = nAgt.indexOf("rv:") + 3, end = start + 4;
-		jQuery.browser.fullVersion = nAgt.substring(start, end)
-	} else-1 != (verOffset = nAgt.indexOf("Chrome")) ? (jQuery.browser.webkit = !0, jQuery.browser.chrome = !0, jQuery.browser.name = "Chrome", jQuery.browser.fullVersion = nAgt.substring(verOffset + 7)) : -1 != (verOffset = nAgt.indexOf("Safari")) ? (jQuery.browser.webkit = !0, jQuery.browser.safari = !0, jQuery.browser.name = "Safari", jQuery.browser.fullVersion = nAgt.substring(verOffset + 7), -1 != (verOffset = nAgt.indexOf("Version")) && (jQuery.browser.fullVersion = nAgt.substring(verOffset + 8))) : -1 != (verOffset = nAgt.indexOf("AppleWebkit")) ? (jQuery.browser.webkit = !0, jQuery.browser.name = "Safari", jQuery.browser.fullVersion = nAgt.substring(verOffset + 7), -1 != (verOffset = nAgt.indexOf("Version")) && (jQuery.browser.fullVersion = nAgt.substring(verOffset + 8))) : -1 != (verOffset = nAgt.indexOf("Firefox")) ? (jQuery.browser.mozilla = !0, jQuery.browser.name = "Firefox", jQuery.browser.fullVersion = nAgt.substring(verOffset + 8)) : (nameOffset = nAgt.lastIndexOf(" ") + 1) < (verOffset = nAgt.lastIndexOf("/")) && (jQuery.browser.name = nAgt.substring(nameOffset, verOffset), jQuery.browser.fullVersion = nAgt.substring(verOffset + 1), jQuery.browser.name.toLowerCase() == jQuery.browser.name.toUpperCase() && (jQuery.browser.name = navigator.appName));
-	-1 != (ix = jQuery.browser.fullVersion.indexOf(";")) && (jQuery.browser.fullVersion = jQuery.browser.fullVersion.substring(0, ix)), -1 != (ix = jQuery.browser.fullVersion.indexOf(" ")) && (jQuery.browser.fullVersion = jQuery.browser.fullVersion.substring(0, ix)), jQuery.browser.majorVersion = parseInt("" + jQuery.browser.fullVersion, 10), isNaN(jQuery.browser.majorVersion) && (jQuery.browser.fullVersion = "" + parseFloat(navigator.appVersion), jQuery.browser.majorVersion = parseInt(navigator.appVersion, 10)), jQuery.browser.version = jQuery.browser.majorVersion
-}
-
-
-/*******************************************************************************
- * jQuery.mb.components: jquery.mb.CSSAnimate
- ******************************************************************************/
+var nAgt=navigator.userAgent;if(!jQuery.browser){jQuery.browser={},jQuery.browser.mozilla=!1,jQuery.browser.webkit=!1,jQuery.browser.opera=!1,jQuery.browser.safari=!1,jQuery.browser.chrome=!1,jQuery.browser.msie=!1,jQuery.browser.ua=nAgt,jQuery.browser.name=navigator.appName,jQuery.browser.fullVersion=""+parseFloat(navigator.appVersion),jQuery.browser.majorVersion=parseInt(navigator.appVersion,10);var nameOffset,verOffset,ix;if(-1!=(verOffset=nAgt.indexOf("Opera")))jQuery.browser.opera=!0,jQuery.browser.name="Opera",jQuery.browser.fullVersion=nAgt.substring(verOffset+6),-1!=(verOffset=nAgt.indexOf("Version"))&&(jQuery.browser.fullVersion=nAgt.substring(verOffset+8));else if(-1!=(verOffset=nAgt.indexOf("OPR")))jQuery.browser.opera=!0,jQuery.browser.name="Opera",jQuery.browser.fullVersion=nAgt.substring(verOffset+4);else if(-1!=(verOffset=nAgt.indexOf("MSIE")))jQuery.browser.msie=!0,jQuery.browser.name="Microsoft Internet Explorer",jQuery.browser.fullVersion=nAgt.substring(verOffset+5);else if(-1!=nAgt.indexOf("Trident")){jQuery.browser.msie=!0,jQuery.browser.name="Microsoft Internet Explorer";var start=nAgt.indexOf("rv:")+3,end=start+4;jQuery.browser.fullVersion=nAgt.substring(start,end)}else-1!=(verOffset=nAgt.indexOf("Chrome"))?(jQuery.browser.webkit=!0,jQuery.browser.chrome=!0,jQuery.browser.name="Chrome",jQuery.browser.fullVersion=nAgt.substring(verOffset+7)):-1!=(verOffset=nAgt.indexOf("Safari"))?(jQuery.browser.webkit=!0,jQuery.browser.safari=!0,jQuery.browser.name="Safari",jQuery.browser.fullVersion=nAgt.substring(verOffset+7),-1!=(verOffset=nAgt.indexOf("Version"))&&(jQuery.browser.fullVersion=nAgt.substring(verOffset+8))):-1!=(verOffset=nAgt.indexOf("AppleWebkit"))?(jQuery.browser.webkit=!0,jQuery.browser.name="Safari",jQuery.browser.fullVersion=nAgt.substring(verOffset+7),-1!=(verOffset=nAgt.indexOf("Version"))&&(jQuery.browser.fullVersion=nAgt.substring(verOffset+8))):-1!=(verOffset=nAgt.indexOf("Firefox"))?(jQuery.browser.mozilla=!0,jQuery.browser.name="Firefox",jQuery.browser.fullVersion=nAgt.substring(verOffset+8)):(nameOffset=nAgt.lastIndexOf(" ")+1)<(verOffset=nAgt.lastIndexOf("/"))&&(jQuery.browser.name=nAgt.substring(nameOffset,verOffset),jQuery.browser.fullVersion=nAgt.substring(verOffset+1),jQuery.browser.name.toLowerCase()==jQuery.browser.name.toUpperCase()&&(jQuery.browser.name=navigator.appName));-1!=(ix=jQuery.browser.fullVersion.indexOf(";"))&&(jQuery.browser.fullVersion=jQuery.browser.fullVersion.substring(0,ix)),-1!=(ix=jQuery.browser.fullVersion.indexOf(" "))&&(jQuery.browser.fullVersion=jQuery.browser.fullVersion.substring(0,ix)),jQuery.browser.majorVersion=parseInt(""+jQuery.browser.fullVersion,10),isNaN(jQuery.browser.majorVersion)&&(jQuery.browser.fullVersion=""+parseFloat(navigator.appVersion),jQuery.browser.majorVersion=parseInt(navigator.appVersion,10)),jQuery.browser.version=jQuery.browser.majorVersion}jQuery.browser.android=/Android/i.test(nAgt),jQuery.browser.blackberry=/BlackBerry|BB|PlayBook/i.test(nAgt),jQuery.browser.ios=/iPhone|iPad|iPod|webOS/i.test(nAgt),jQuery.browser.operaMobile=/Opera Mini/i.test(nAgt),jQuery.browser.windowsMobile=/IEMobile|Windows Phone/i.test(nAgt),jQuery.browser.kindle=/Kindle|Silk/i.test(nAgt),jQuery.browser.mobile=jQuery.browser.android||jQuery.browser.blackberry||jQuery.browser.ios||jQuery.browser.windowsMobile||jQuery.browser.operaMobile||jQuery.browser.kindle,jQuery.isMobile=jQuery.browser.mobile,jQuery.isTablet=jQuery.browser.mobile&&jQuery(window).width()>765,jQuery.isAndroidDefault=jQuery.browser.android&&!/chrome/i.test(nAgt);
 
 var ua = navigator.userAgent.toLowerCase();
 var isAndroid = /android/.test(ua);
 var isiOs = /(iphone|ipod|ipad)/.test(ua);
-
-var acceptedDevices = /(ipad)/.test(ua);
-var isOpera = /opera/.test(ua);
 
 /*events mapping*/
 var isDevice = 'ontouchstart' in window;
@@ -101,9 +82,11 @@ jQuery.fn.unselectable = function () {
 		version : "1.5",
 		defaults: {
 			elements          : "[data-start]",
-			wheelSpeed        : 10,
+			wheelSpeed        : 1,
 			//scrollStep should not be changed as this can compromize performance
 			scrollStep        : 2,
+			scrollSpeed       : 50,
+			stepInterval      : 10,
 			direction         : "vertical",
 			showSteps         : true,
 			preloadImages     : true,
@@ -134,7 +117,7 @@ jQuery.fn.unselectable = function () {
 			$.scrollax.els = $($.scrollax.defaults.elements);
 			$.scrollax.scrolled = 0;
 			$.scrollax.maxScroll = 0;
-			$.scrollax.els.each(function (i) {
+			$.scrollax.els.each(function () {
 				$.scrollax.addElement(this);
 			});
 
@@ -477,11 +460,11 @@ jQuery.fn.unselectable = function () {
 						$("body").off("mousewheel.moving");
 					},1500);
 
-					el.css(from).animate(to,time,function(){});
+					el.css(from).CSSAnimate(to,time,function(){});
 				},delay);
 
-			}else{
-				el.css(to).animate(from,time,function(){});
+			} else {
+				el.css(to).CSSAnimate(from,time,function(){});
 			}
 		}
 	};
@@ -489,8 +472,10 @@ jQuery.fn.unselectable = function () {
 	$.timeline = {
 		frames       : 4000,
 		pos          : 0,
+		interval     : 10,
 		activateKeyboard : true,
 		pageMarkers  : [],
+
 		buildScroller: function () {
 			$(".scrollaxerCont").remove();
 			var scroller = $("<div/>").addClass("scrollaxer").css({width: 20, height: $.timeline.frames + $(window).height()});
@@ -518,8 +503,22 @@ jQuery.fn.unselectable = function () {
 
 				var oldScrolled = $.timeline.pos;
 				var newPos = $.timeline.scroller.scrollTop();
+				$.timeline.dir = oldScrolled < newPos ? "forward" : "backward";
+
+				if( ($.timeline.dir == "forward" && newPos < oldScrolled + $.timeline.interval) || ($.timeline.dir == "backward" && newPos > oldScrolled - $.timeline.interval) )
+					return;
+
 				var event = $.Event("timelineChanged");
+
+				event.pos = newPos;
+				$.timeline.pos = newPos;
+				$(document).trigger(event);
+
+				console.debug(newPos);
+
+/*
 				if (oldScrolled < newPos) {
+
 					for (var i = oldScrolled + 1; i <= newPos; i++) {
 						event.pos = i;
 						$.timeline.dir = "forward";
@@ -537,6 +536,8 @@ jQuery.fn.unselectable = function () {
 					event.pos = $.timeline.pos;
 					$(document).trigger(event);
 				}
+*/
+
 			});
 
 			if (!isDevice) {
@@ -629,7 +630,7 @@ jQuery.fn.unselectable = function () {
 			//clearInterval($.timeline.step);
 
 			if($.timeline.step)
-				clearInterval($.timeline.step)
+				clearInterval($.timeline.step);
 			//cancelAnimationFrame($.timeline.step);
 
 			$.timeline.isMoving = true;
@@ -665,7 +666,7 @@ jQuery.fn.unselectable = function () {
 				//$.timeline.step = requestAnimationFrame(moveSteps)
 			}
 
-			$.timeline.step = setInterval(moveSteps,1)
+			$.timeline.step = setInterval(moveSteps,$.scrollax.defaults.scrollSpeed);
 			//$.timeline.step = requestAnimationFrame(moveSteps);
 
 		},
@@ -673,7 +674,7 @@ jQuery.fn.unselectable = function () {
 		stopMoveBy: function () {
 
 			if($.timeline.step)
-				clearInterval($.timeline.step)
+				clearInterval($.timeline.step);
 			//cancelAnimationFrame($.timeline.step);
 
 
