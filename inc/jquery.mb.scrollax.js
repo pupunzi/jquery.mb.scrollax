@@ -65,16 +65,6 @@ events.winResize = "resize";
 
 /*****************************************************************************/
 
-jQuery.fn.unselectable = function () {
-	return this.each(function () {
-		jQuery(this).css({
-			"-moz-user-select"  : "none",
-			"-khtml-user-select": "none",
-			"user-select"       : "none"
-		}).attr("unselectable", "on");
-	});
-};
-
 (function ($) {
 	$.scrollax = {
 		name    : "jquery.mb.scrollax",
@@ -84,9 +74,8 @@ jQuery.fn.unselectable = function () {
 			elements          : "[data-start]",
 			wheelSpeed        : 1,
 			//scrollStep should not be changed as this can compromize performance
-			scrollStep        : 2,
-			scrollSpeed       : 50,
-			stepInterval      : 1,
+			scrollStep        : 1,
+			scrollSpeed       : 10,
 			direction         : "vertical",
 			showSteps         : true,
 			preloadImages     : true,
@@ -109,7 +98,7 @@ jQuery.fn.unselectable = function () {
 			}
 
 			$.timeline.wheelSpeed = $.scrollax.defaults.wheelSpeed *  10;
-			$.timeline.scrollStep = $.scrollax.defaults.scrollStep *  10;
+			$.timeline.scrollStep = $.scrollax.defaults.scrollStep *  ($.browser.mozilla ? 30 : 10);
 //			direction works only for touch devices.
 			$.timeline.direction = $.scrollax.defaults.direction;
 			$.timeline.activateKeyboard = $.scrollax.defaults.activateKeyboard;
@@ -162,6 +151,7 @@ jQuery.fn.unselectable = function () {
 
 			});
 
+/*
 			if (!$.browser.msie)
 				$(window).off(events.winResize + ".scrollax").on(events.winResize + ".scrollax", function () {
 					clearTimeout($.scrollax.restart);
@@ -169,6 +159,7 @@ jQuery.fn.unselectable = function () {
 						self.location.href = self.location.href;
 					}, 300);
 				});
+*/
 
 		},
 
@@ -644,31 +635,31 @@ jQuery.fn.unselectable = function () {
 				counter++;
 				var reallyStop = true;
 
-				/*
-				 if (counter > ($.timeline.wheelSpeed / $.timeline.scrollStep)) {
 
-				 if( $.timeline.pageMarkers.length)
-				 for (var pmi in $.timeline.pageMarkers) {
+				if (counter > ($.timeline.wheelSpeed / $.timeline.scrollStep)) {
 
-				 var pm = $.timeline.pageMarkers[pmi];
+					if( $.timeline.pageMarkers.length) {
+						for (var pmi in $.timeline.pageMarkers) {
 
-				 console.debug("pageMarker-" + pmi + ": " + $.timeline.pageMarkers[pmi])
-				 console.debug("timeline.pos " + $.timeline.pos)
+							var pm = $.timeline.pageMarkers[pmi];
 
-				 if (
-				 (pm > $.timeline.pos && delta.sign() == 1 && pm < ($.timeline.pos + ($.timeline.wheelSpeed * 2) + 1)) ||
-				 (pm < $.timeline.pos && delta.sign() == -1 && pm > ($.timeline.pos - ($.timeline.wheelSpeed * 2) -1 ))
-				 ) {
-				 reallyStop = false;
-				 }
-				 }
+							console.debug("pageMarker-" + pmi + ": " + $.timeline.pageMarkers[pmi])
+							console.debug("timeline.pos " + $.timeline.pos)
 
-				 if (reallyStop && !$.scrollax.defaults.stopOnlyAtMarkers)
-				 $.timeline.stopMoveBy();
-				 }
-				 */
+							if (
+									(pm > $.timeline.pos && delta.sign() == 1 && pm < ($.timeline.pos + ($.timeline.wheelSpeed * 2) + 1)) ||
+									(pm < $.timeline.pos && delta.sign() == -1 && pm > ($.timeline.pos - ($.timeline.wheelSpeed * 2) -1 ))
+									) {
+								reallyStop = false;
+							}
+						}
 
-				//$.timeline.stopMoveBy();
+						if (reallyStop && !$.scrollax.defaults.stopOnlyAtMarkers)
+							$.timeline.stopMoveBy();
+					}
+				} else {
+					$.timeline.stopMoveBy();
+				}
 
 				var d = $.timeline.scrollStep * delta.sign();
 
@@ -785,6 +776,16 @@ jQuery.fn.unselectable = function () {
 
 })(jQuery);
 
+
+jQuery.fn.unselectable = function () {
+	return this.each(function () {
+		jQuery(this).css({
+			"-moz-user-select"  : "none",
+			"-khtml-user-select": "none",
+			"user-select"       : "none"
+		}).attr("unselectable", "on");
+	});
+};
 
 Number.prototype.sign = function () {
 	return this > 0 ? 1 : -1;

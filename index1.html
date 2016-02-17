@@ -49,18 +49,9 @@
             transform-origin: 0 0;
         }
 
-        #console {
-            position: fixed;
-            font-size: 20px;
-            background: white;
-            width: 200px;
-            padding: 20px;
-            z-index: 1000;
-            max-height: 100%;
-            overflow: auto;
-        }
 
         #wrapper {
+            moz-backface-visibility: hidden;
             backface-visibility: hidden;
 
             position: relative;
@@ -128,9 +119,7 @@
 
             $.scrollax.init({
                 showSteps: true,
-                wheelSpeed:100,
-                scrollStep:1,
-                stopOnlyAtMarkers:true,
+                stopOnlyAtMarkers:false,
                 preloadImages:true,
                 onBeforePreloading:function(){
                     $("body").css({opacity:0});
