@@ -128,9 +128,9 @@
 
             $.scrollax.init({
                 showSteps: true,
-                wheelSpeed:10,
+                wheelSpeed:100,
                 scrollStep:1,
-                stopOnlyAtMarkers:false,
+                stopOnlyAtMarkers:true,
                 preloadImages:true,
                 onBeforePreloading:function(){
                     $("body").css({opacity:0});
@@ -140,7 +140,7 @@
                     $("#preloadBox .number").html(counter+"/"+tot);
                 },
                 onEndPreloading:function(){
-                    $("body").css({opacity:1})
+                    $("body").css({opacity:1});
                     $("#preloadBox").hide();
                 }
             });

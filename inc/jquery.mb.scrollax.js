@@ -86,12 +86,12 @@ jQuery.fn.unselectable = function () {
 			//scrollStep should not be changed as this can compromize performance
 			scrollStep        : 2,
 			scrollSpeed       : 50,
-			stepInterval      : 10,
+			stepInterval      : 1,
 			direction         : "vertical",
 			showSteps         : true,
 			preloadImages     : true,
 			activateKeyboard  :true,
-			stopOnlyAtMarkers :false,
+			stopOnlyAtMarkers :true,
 			onBeforePreloading: function () {},
 			onPreloading      : function (counter, tot) {},
 			onEndPreloading   : function () {}
@@ -137,10 +137,12 @@ jQuery.fn.unselectable = function () {
 
 				var isPageMarker = $.timeline.pageMarkers.indexOf($.timeline.pos) >= 0;
 
+				console.debug(isPageMarker);
+
 				if (isPageMarker){
-					 var event = $.Event("pageMarker");
-					 event.pageMarker = $.timeline.pos;
-					 $(document).trigger(event);
+					var event = $.Event("pageMarker");
+					event.pageMarker = $.timeline.pos;
+					$(document).trigger(event);
 
 					$.timeline.stopMoveBy();
 
@@ -490,9 +492,9 @@ jQuery.fn.unselectable = function () {
 				scrollerCont.on("mouseenter",function () {
 					$(this).animate({opacity: 1});
 				}).on("mouseleave", function () {
-							$.timeline.scroller.scrollTop($.timeline.pos);
-							$(this).animate({opacity: .5});
-						});
+					$.timeline.scroller.scrollTop($.timeline.pos);
+					$(this).animate({opacity: .5});
+				});
 			else
 				scrollerCont.css({opacity: 1});
 
@@ -516,17 +518,17 @@ jQuery.fn.unselectable = function () {
 
 				console.debug(newPos);
 
-/*
+
 				if (oldScrolled < newPos) {
 
-					for (var i = oldScrolled + 1; i <= newPos; i++) {
+					for (var i = oldScrolled + 1; i <= newPos; i+=$.timeline.interval) {
 						event.pos = i;
 						$.timeline.dir = "forward";
 						$.timeline.pos = i;
 						$(document).trigger(event);
 					}
 				} else if (oldScrolled > newPos){
-					for (i = oldScrolled - 1; i >= newPos; i--) {
+					for (i = oldScrolled - 1; i >= newPos; i-=$.timeline.interval) {
 						event.pos = i;
 						$.timeline.dir = "backward";
 						$.timeline.pos = i;
@@ -536,7 +538,7 @@ jQuery.fn.unselectable = function () {
 					event.pos = $.timeline.pos;
 					$(document).trigger(event);
 				}
-*/
+
 
 			});
 
@@ -642,32 +644,40 @@ jQuery.fn.unselectable = function () {
 				counter++;
 				var reallyStop = true;
 
-				if (counter > ($.timeline.wheelSpeed / $.timeline.scrollStep)) {
-					for (var pmi in $.timeline.pageMarkers) {
-						var pm = $.timeline.pageMarkers[pmi];
+				/*
+				 if (counter > ($.timeline.wheelSpeed / $.timeline.scrollStep)) {
 
-						if (
-								(pm > $.timeline.pos && delta.sign() == 1 && pm < ($.timeline.pos + ($.timeline.wheelSpeed * 2) + 1)) ||
-										(pm < $.timeline.pos && delta.sign() == -1 && pm > ($.timeline.pos - ($.timeline.wheelSpeed * 2) -1 ))
-								) {
-							reallyStop = false;
-						}
-					}
+				 if( $.timeline.pageMarkers.length)
+				 for (var pmi in $.timeline.pageMarkers) {
 
-					if (reallyStop && !$.scrollax.defaults.stopOnlyAtMarkers)
-						$.timeline.stopMoveBy();
-				}
+				 var pm = $.timeline.pageMarkers[pmi];
+
+				 console.debug("pageMarker-" + pmi + ": " + $.timeline.pageMarkers[pmi])
+				 console.debug("timeline.pos " + $.timeline.pos)
+
+				 if (
+				 (pm > $.timeline.pos && delta.sign() == 1 && pm < ($.timeline.pos + ($.timeline.wheelSpeed * 2) + 1)) ||
+				 (pm < $.timeline.pos && delta.sign() == -1 && pm > ($.timeline.pos - ($.timeline.wheelSpeed * 2) -1 ))
+				 ) {
+				 reallyStop = false;
+				 }
+				 }
+
+				 if (reallyStop && !$.scrollax.defaults.stopOnlyAtMarkers)
+				 $.timeline.stopMoveBy();
+				 }
+				 */
+
+				//$.timeline.stopMoveBy();
 
 				var d = $.timeline.scrollStep * delta.sign();
 
 				$.timeline.delta = $.timeline.scroller.scrollTop() + d;
 				$.timeline.scroller.scrollTop($.timeline.delta);
 
-				//$.timeline.step = requestAnimationFrame(moveSteps)
 			}
 
 			$.timeline.step = setInterval(moveSteps,$.scrollax.defaults.scrollSpeed);
-			//$.timeline.step = requestAnimationFrame(moveSteps);
 
 		},
 
@@ -675,10 +685,6 @@ jQuery.fn.unselectable = function () {
 
 			if($.timeline.step)
 				clearInterval($.timeline.step);
-			//cancelAnimationFrame($.timeline.step);
-
-
-			//clearInterval($.timeline.step);
 			$.timeline.isMoving = false;
 		},
 
@@ -765,12 +771,12 @@ jQuery.fn.unselectable = function () {
 				if (counter == imagesArray.length && typeof callback == "function")
 					callback();
 			}).on("error", function(){
-						counter++;
-						$.scrollax.defaults.onPreloading(counter, imagesArray.length);
-						if (counter == imagesArray.length && typeof callback == "function"){
-							callback();
-						}
-					})
+				counter++;
+				$.scrollax.defaults.onPreloading(counter, imagesArray.length);
+				if (counter == imagesArray.length && typeof callback == "function"){
+					callback();
+				}
+			})
 
 		}
 
