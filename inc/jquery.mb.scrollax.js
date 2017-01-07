@@ -42,6 +42,7 @@ events.winResize = "resize";
  * Version: 3.0.6
  * Requires: 1.2.2+
  */
+
 (function (d) {
 	function e(a) {
 		var b = a || window.event, c = [].slice.call(arguments, 1), f = 0, e = 0, g = 0;
@@ -74,8 +75,8 @@ events.winResize = "resize";
 			elements          : "[data-start]",
 			wheelSpeed        : 1,
 			//scrollStep should not be changed as this can compromize performance
-			scrollStep        : 1,
-			scrollSpeed       : 10,
+			scrollStep        : 2,
+			scrollSpeed       : 50,
 			direction         : "vertical",
 			showSteps         : true,
 			preloadImages     : true,
@@ -98,7 +99,7 @@ events.winResize = "resize";
 			}
 
 			$.timeline.wheelSpeed = $.scrollax.defaults.wheelSpeed *  10;
-			$.timeline.scrollStep = $.scrollax.defaults.scrollStep *  ($.browser.mozilla ? 30 : 10);
+			$.timeline.scrollStep = $.scrollax.defaults.scrollStep *  10;
 //			direction works only for touch devices.
 			$.timeline.direction = $.scrollax.defaults.direction;
 			$.timeline.activateKeyboard = $.scrollax.defaults.activateKeyboard;
@@ -126,14 +127,13 @@ events.winResize = "resize";
 
 				var isPageMarker = $.timeline.pageMarkers.indexOf($.timeline.pos) >= 0;
 
-				console.debug(isPageMarker);
-
 				if (isPageMarker){
 					var event = $.Event("pageMarker");
 					event.pageMarker = $.timeline.pos;
 					$(document).trigger(event);
 
 					$.timeline.stopMoveBy();
+					clearInterval($.timeline.step);
 
 					if($.timeline.animationIsRunning )
 						$("body").off("mousewheel.moving").on("mousewheel.moving", function(){
@@ -151,15 +151,6 @@ events.winResize = "resize";
 
 			});
 
-/*
-			if (!$.browser.msie)
-				$(window).off(events.winResize + ".scrollax").on(events.winResize + ".scrollax", function () {
-					clearTimeout($.scrollax.restart);
-					$.scrollax.restart = setTimeout(function () {
-						self.location.href = self.location.href;
-					}, 300);
-				});
-*/
 
 		},
 
@@ -370,7 +361,7 @@ events.winResize = "resize";
 		},
 
 		play: function (speed) {
-			if (!speed) speed = 10;
+			if (!speed) speed = 1;
 			if ($.scrollax.autoplay) {
 				clearInterval($.scrollax.autoplay);
 				$.scrollax.autoplay = false;
@@ -502,24 +493,19 @@ events.winResize = "resize";
 					return;
 
 				var event = $.Event("timelineChanged");
-
 				event.pos = newPos;
 				$.timeline.pos = newPos;
 				$(document).trigger(event);
 
-				console.debug(newPos);
-
-
 				if (oldScrolled < newPos) {
-
-					for (var i = oldScrolled + 1; i <= newPos; i+=$.timeline.interval) {
+					for (var i = oldScrolled ; i <= newPos; i+=$.timeline.interval) {
 						event.pos = i;
 						$.timeline.dir = "forward";
 						$.timeline.pos = i;
 						$(document).trigger(event);
 					}
 				} else if (oldScrolled > newPos){
-					for (i = oldScrolled - 1; i >= newPos; i-=$.timeline.interval) {
+					for (i = oldScrolled ; i >= newPos; i-=$.timeline.interval) {
 						event.pos = i;
 						$.timeline.dir = "backward";
 						$.timeline.pos = i;
@@ -529,7 +515,6 @@ events.winResize = "resize";
 					event.pos = $.timeline.pos;
 					$(document).trigger(event);
 				}
-
 
 			});
 
@@ -620,21 +605,17 @@ events.winResize = "resize";
 			if (($.timeline.isMoving && delta.sign() == $.timeline.runningDeltaSign) || !delta)
 				return;
 
-			//clearInterval($.timeline.step);
 
 			if($.timeline.step)
 				clearInterval($.timeline.step);
-			//cancelAnimationFrame($.timeline.step);
 
 			$.timeline.isMoving = true;
 			$.timeline.runningDeltaSign = delta.sign();
 
 			var counter = 0;
-
 			function moveSteps () {
 				counter++;
 				var reallyStop = true;
-
 
 				if (counter > ($.timeline.wheelSpeed / $.timeline.scrollStep)) {
 
@@ -643,32 +624,36 @@ events.winResize = "resize";
 
 							var pm = $.timeline.pageMarkers[pmi];
 
-							console.debug("pageMarker-" + pmi + ": " + $.timeline.pageMarkers[pmi])
-							console.debug("timeline.pos " + $.timeline.pos)
-
 							if (
+									$.timeline.actualPageMarker != pm && (
 									(pm > $.timeline.pos && delta.sign() == 1 && pm < ($.timeline.pos + ($.timeline.wheelSpeed * 2) + 1)) ||
 									(pm < $.timeline.pos && delta.sign() == -1 && pm > ($.timeline.pos - ($.timeline.wheelSpeed * 2) -1 ))
-									) {
+									)) {
+
+								$.timeline.actualPageMarker = pm;
+
+								clearInterval($.timeline.step);
+
 								reallyStop = false;
+								break;
 							}
 						}
 
-						if (reallyStop && !$.scrollax.defaults.stopOnlyAtMarkers)
+						if (reallyStop && !$.scrollax.defaults.stopOnlyAtMarkers )
 							$.timeline.stopMoveBy();
 					}
+
 				} else {
 					$.timeline.stopMoveBy();
 				}
 
 				var d = $.timeline.scrollStep * delta.sign();
-
 				$.timeline.delta = $.timeline.scroller.scrollTop() + d;
 				$.timeline.scroller.scrollTop($.timeline.delta);
 
 			}
 
-			$.timeline.step = setInterval(moveSteps,$.scrollax.defaults.scrollSpeed);
+			$.timeline.step = setInterval(moveSteps, $.scrollax.defaults.scrollSpeed);
 
 		},
 
@@ -677,12 +662,14 @@ events.winResize = "resize";
 			if($.timeline.step)
 				clearInterval($.timeline.step);
 			$.timeline.isMoving = false;
+
 		},
 
 		moveTo         : function (val) {
 			var time = 1500* Math.ceil(Math.abs((val-$.timeline.scroller.scrollTop())/1000));
 			$.timeline.scroller.animate({scrollTop: val}, time, "easeOutQuart");//"easeInOutQuint"
 		},
+
 		refresh        : function (val) {
 			$.timeline.frames = val;
 			$(".scrollaxer").css({height: $.timeline.frames});
@@ -792,8 +779,7 @@ Number.prototype.sign = function () {
 }
 
 if (!Array.prototype.indexOf){
-	Array.prototype.indexOf = function(elt)
-	{
+	Array.prototype.indexOf = function(elt) {
 		var len = this.length >>> 0;
 
 		var from = Number(arguments[1]) || 0;
